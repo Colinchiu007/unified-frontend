@@ -121,8 +121,10 @@ export default function SettingsPage() {
   const fetchProfile = useCallback(async () => {
     setProfileLoading(true);
     setProfileError(null);
+    let redirected = false;
     try {
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
+        redirected = true;
         router.push("/login");
         return;
       }
@@ -132,12 +134,13 @@ export default function SettingsPage() {
       setEditEmail(p.email);
     } catch (err: any) {
       if (err.message?.startsWith("401")) {
+        redirected = true;
         router.push("/login");
         return;
       }
       setProfileError(err.message ?? "加载失败");
     } finally {
-      setProfileLoading(false);
+      if (!redirected) setProfileLoading(false);
     }
   }, [router]);
 
@@ -524,6 +527,4 @@ export default function SettingsPage() {
                             : `${key.key_preview.slice(0, 8)}...${key.key_preview.slice(-4)}`}
                         </code>
                         <button
-                          onClick={() =>
-                            setShowKey((prev) => ({
-                              ..
+                          

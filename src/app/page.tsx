@@ -86,9 +86,11 @@ export default function DashboardPage() {
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
     setError(null);
+    let redirected = false;
     try {
       // Check token early
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
+        redirected = true;
         router.push("/login");
         return;
       }
@@ -96,12 +98,13 @@ export default function DashboardPage() {
       setData(result);
     } catch (err: any) {
       if (err.message?.startsWith("401")) {
+        redirected = true;
         router.push("/login");
         return;
       }
       setError(err.message ?? "加载失败，请稍后重试");
     } finally {
-      setLoading(false);
+      if (!redirected) setLoading(false);
     }
   }, [router]);
 
@@ -249,11 +252,4 @@ export default function DashboardPage() {
                     {item.hot_score.toLocaleString()}
                   </div>
                 </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </AppLayout>
-  );
-}
+   

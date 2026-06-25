@@ -546,8 +546,10 @@ export default function GeneratePage() {
   const fetchOptions = useCallback(async () => {
     setLoading(true);
     setError(null);
+    let redirected = false;
     try {
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
+        redirected = true;
         router.push("/login");
         return;
       }
@@ -560,12 +562,13 @@ export default function GeneratePage() {
         setPlatform(opts.prompt_platforms[0].id);
     } catch (err: any) {
       if (err.message?.startsWith("401")) {
+        redirected = true;
         router.push("/login");
         return;
       }
       setError(err.message ?? "加载失败");
     } finally {
-      setLoading(false);
+      if (!redirected) setLoading(false);
     }
   }, [router]);
 
@@ -812,11 +815,4 @@ export default function GeneratePage() {
           <div className="border rounded-lg bg-card p-6 space-y-4">
             <ProgressTracker
               jobId={result.job_id}
-              initialStatus={result.status}
-            />
-          </div>
-        )}
-      </div>
-    </AppLayout>
-  );
-}
+              initialStat

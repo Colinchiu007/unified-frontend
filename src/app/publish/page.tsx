@@ -339,8 +339,10 @@ export default function PublishPage() {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchJobs = useCallback(async () => {
+    let redirected = false;
     try {
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
+        redirected = true;
         router.push("/login");
         return;
       }
@@ -350,12 +352,13 @@ export default function PublishPage() {
       setError(null);
     } catch (err: any) {
       if (err.message?.startsWith("401")) {
+        redirected = true;
         router.push("/login");
         return;
       }
       setError(err.message ?? "加载失败");
     } finally {
-      setLoading(false);
+      if (!redirected) setLoading(false);
     }
   }, [router, filter]);
 
@@ -510,11 +513,3 @@ export default function PublishPage() {
                 job={job}
                 onRetry={handleRetry}
                 isRetrying={retrying === job.id}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </AppLayout>
-  );
-}
