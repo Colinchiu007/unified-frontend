@@ -1,0 +1,7 @@
+# .clinerules — unified-frontend 特定硬约束
+
+- rule: "所有 API 调用走 @/lib/api 封装层，组件不直接 fetch"
+- rule: "所有 'use client' 组件必须实现 loading / error / empty 三态"
+- rule: "finally 块中 setLoading(false) 必须有 redirected 标志守卫"
+- rule: "token 过期统一走 router.push('/login')，不在组件中单独处理"
+- rule: "新建页面必须注册到 AppLayout 侧边栏导航"
