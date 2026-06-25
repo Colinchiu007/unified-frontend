@@ -1,6 +1,6 @@
 /// Orchestrator API client
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token =
@@ -112,3 +112,65 @@ export function register(data: {
 // ─── Dashboard ───
 
 export function getDashboard() {
+  return request<DashboardData>("/api/v1/aggregator/dashboard");
+}
+
+// ─── Generate ───
+
+export function getGenerateOptions() {
+  return request<GenerateOptions>("/api/v1/aggregator/generate-options");
+}
+
+export function submitGenerate(data: GenerateRequest) {
+  return request<{ job_id: string; status: string }>(
+    "/api/v1/aggregator/generate",
+    { method: "POST", body: JSON.stringify(data) },
+  );
+}
+
+// ─── Jobs ───
+
+export function getJobs(status?: string) {
+  const qs = status ? `?status=${status}` : "";
+  return request<{ items: JobStatus[]; total: number }>(`/api/jobs${qs}`);
+}
+
+export function getJobDetail(jobId: string) {
+  return request<JobStatus>(`/api/jobs/${jobId}`);
+}
+
+export function retryJob(jobId: string) {
+  return request<{ status: string }>(`/api/jobs/${jobId}/retry`, {
+    method: "POST",
+  });
+}
+
+// ─── Settings: Profile ───
+
+export function getProfile() {
+  return request<UserProfile>("/api/settings/profile");
+}
+
+export function updateProfile(data: Partial<Pick<UserProfile, "username" | "email">>) {
+  return request<UserProfile>("/api/settings/profile", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+// ─── Settings: API Keys ───
+
+export function getApiKeys() {
+  return request<{ items: ApiKey[] }>("/api/settings/api-keys");
+}
+
+export function createApiKey(label: string) {
+  return request<{ id: string; label: string; key: string }>(
+    "/api/settings/api-keys",
+    { method: "POST", body: JSON.stringify({ label }) },
+  );
+}
+
+export function deleteApiKey(id: string) {
+  return request<void>(`/api/settings/api-keys/${id}`, { method: "DELETE" });
+}

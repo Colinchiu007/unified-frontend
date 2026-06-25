@@ -304,7 +304,7 @@ function JobCard({
               <span className="font-medium">{duration}</span>
             </div>
           )}
-          {job.output_data?.output_path && (
+          {job.output_data?.output_path != null && (
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground w-16 flex-shrink-0">输出</span>
               <code className="bg-muted px-1.5 py-0.5 rounded font-mono truncate max-w-[300px]">
@@ -339,10 +339,8 @@ export default function PublishPage() {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchJobs = useCallback(async () => {
-    let redirected = false;
     try {
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
-        redirected = true;
         router.push("/login");
         return;
       }
@@ -352,13 +350,12 @@ export default function PublishPage() {
       setError(null);
     } catch (err: any) {
       if (err.message?.startsWith("401")) {
-        redirected = true;
         router.push("/login");
         return;
       }
       setError(err.message ?? "加载失败");
     } finally {
-      if (!redirected) setLoading(false);
+      setLoading(false);
     }
   }, [router, filter]);
 
@@ -513,3 +510,11 @@ export default function PublishPage() {
                 job={job}
                 onRetry={handleRetry}
                 isRetrying={retrying === job.id}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </AppLayout>
+  );
+}

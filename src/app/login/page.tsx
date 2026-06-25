@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { login } from "@/lib/api";
 
 export default function LoginPage() {
@@ -62,6 +63,13 @@ export default function LoginPage() {
           >
             登录
           </button>
+
+          <p className="text-center text-sm text-muted-foreground pt-2">
+            还没有账号？{" "}
+            <Link href="/register" className="text-primary hover:underline font-medium">
+              去注册
+            </Link>
+          </p>
         </div>
       </form>
     </div>

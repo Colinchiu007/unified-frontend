@@ -202,9 +202,9 @@ function ProgressTracker({
       )}
 
       {/* Output summary */}
-      {output && (status === "done" || status === "completed") && (
+      {output != null && (status === "done" || status === "completed") && (
         <div className="p-4 border rounded-lg bg-card text-sm space-y-2">
-          {output.output_path && (
+          {output.output_path != null && (
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">输出:</span>
               <span className="font-mono text-xs truncate">
@@ -229,7 +229,7 @@ function ProgressTracker({
       )}
 
       {/* Error detail */}
-      {status === "failed" && output?.error && (
+      {status === "failed" && output?.error != null && (
         <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
           {output.error as string}
         </div>
@@ -546,10 +546,8 @@ export default function GeneratePage() {
   const fetchOptions = useCallback(async () => {
     setLoading(true);
     setError(null);
-    let redirected = false;
     try {
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
-        redirected = true;
         router.push("/login");
         return;
       }
@@ -562,13 +560,12 @@ export default function GeneratePage() {
         setPlatform(opts.prompt_platforms[0].id);
     } catch (err: any) {
       if (err.message?.startsWith("401")) {
-        redirected = true;
         router.push("/login");
         return;
       }
       setError(err.message ?? "加载失败");
     } finally {
-      if (!redirected) setLoading(false);
+      setLoading(false);
     }
   }, [router]);
 
@@ -815,4 +812,11 @@ export default function GeneratePage() {
           <div className="border rounded-lg bg-card p-6 space-y-4">
             <ProgressTracker
               jobId={result.job_id}
-              initialStat
+              initialStatus={result.status}
+            />
+          </div>
+        )}
+      </div>
+    </AppLayout>
+  );
+}

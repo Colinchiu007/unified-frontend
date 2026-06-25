@@ -109,10 +109,8 @@ export default function ContentPage() {
   const fetchContent = useCallback(async () => {
     setLoading(true);
     setError(null);
-    let redirected = false;
     try {
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
-        redirected = true;
         router.push("/login");
         return;
       }
@@ -120,13 +118,12 @@ export default function ContentPage() {
       setArticles(result.content_sources ?? []);
     } catch (err: any) {
       if (err.message?.startsWith("401")) {
-        redirected = true;
         router.push("/login");
         return;
       }
       setError(err.message ?? "加载失败，请稍后重试");
     } finally {
-      if (!redirected) setLoading(false);
+      setLoading(false);
     }
   }, [router]);
 
@@ -316,4 +313,14 @@ export default function ContentPage() {
                         <span>{formatDate(article.created_at)}</span>
                       </div>
                     )}
-         
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      </div>
+    </AppLayout>
+  );
+}

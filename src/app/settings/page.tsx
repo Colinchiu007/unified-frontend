@@ -121,10 +121,8 @@ export default function SettingsPage() {
   const fetchProfile = useCallback(async () => {
     setProfileLoading(true);
     setProfileError(null);
-    let redirected = false;
     try {
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
-        redirected = true;
         router.push("/login");
         return;
       }
@@ -134,13 +132,12 @@ export default function SettingsPage() {
       setEditEmail(p.email);
     } catch (err: any) {
       if (err.message?.startsWith("401")) {
-        redirected = true;
         router.push("/login");
         return;
       }
       setProfileError(err.message ?? "加载失败");
     } finally {
-      if (!redirected) setProfileLoading(false);
+      setProfileLoading(false);
     }
   }, [router]);
 
@@ -527,4 +524,52 @@ export default function SettingsPage() {
                             : `${key.key_preview.slice(0, 8)}...${key.key_preview.slice(-4)}`}
                         </code>
                         <button
-                          
+                          onClick={() =>
+                            setShowKey((prev) => ({
+                              ...prev,
+                              [key.id]: !isShowing,
+                            }))
+                          }
+                          className="p-0.5 rounded text-muted-foreground hover:text-foreground"
+                        >
+                          {isShowing ? (
+                            <EyeOff className="w-3.5 h-3.5" />
+                          ) : (
+                            <Eye className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          创建于 {formatDate(key.created_at)}
+                        </span>
+                        {key.last_used_at && (
+                          <span>
+                            最近使用 {formatDate(key.last_used_at)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteKey(key.id)}
+                      disabled={deletingKey === key.id}
+                      className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-40"
+                      title="删除"
+                    >
+                      {deletingKey === key.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </div>
+    </AppLayout>
+  );
+}
