@@ -29,7 +29,11 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await register({ username, email, password });
+      const res = await register({
+        username,
+        email: email || undefined,
+        password,
+      });
       localStorage.setItem("token", res.access_token);
       router.push("/");
     } catch (err: any) {
@@ -65,13 +69,12 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">邮箱</label>
+            <label className="text-sm font-medium">邮箱 <span className="text-muted-foreground font-normal">(选填)</span></label>
             <input
               type="email"
               className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </div>
           <div>
