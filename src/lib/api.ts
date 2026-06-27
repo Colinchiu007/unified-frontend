@@ -294,3 +294,86 @@ export function deleteUserProviderKey(name: string) {
     method: "DELETE",
   });
 }
+
+// ─── User: Subscription & Usage ───
+
+export interface UserUsage {
+  videos_used: number;
+  videos_quota: number;
+  reset_time: string;
+  plan_type: string;
+  date: string;
+}
+
+export interface UserSubscription {
+  plan_type: string;
+  features: string[];
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+}
+
+export function getUserUsage() {
+  return request<UserUsage>("/api/user/usage");
+}
+
+export function getUserSubscription() {
+  return request<UserSubscription>("/api/auth/subscription");
+}
+
+
+// ─── Admin: Users ───
+
+export interface AdminUser {
+  uuid: string;
+  username: string;
+  email: string;
+  subscription_type: string;
+  is_active: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface PaginatedUsers {
+  users: AdminUser[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  subscription: {
+    plan_type: string;
+    status: string;
+    start_date: string | null;
+    end_date: string | null;
+    auto_renew: boolean;
+  } | null;
+  usage: Array<{
+    date: string;
+    videos_created: number;
+    videos_quota: number;
+  }>;
+}
+
+export function getAdminUsers(params: { page?: number; page_size?: number; subscription_type?: string; is_active?: string; search?: string }): Promise<PaginatedUsers> {
+  const qs = new URLSearchParams();
+  if (params.page) qs.set("page", String(params.page));
+  if (params.page_size) qs.set("page_size", String(params.page_size));
+  if (params.subscription_type) qs.set("subscription_type", params.subscription_type);
+  if (params.is_active) qs.set("is_active", params.is_active);
+  if (params.search) qs.set("search", params.search);
+  const query = qs.toString();
+  return request<PaginatedUsers>(`/api/admin/users${query ? "?" + query : ""}`);
+}
+
+export function getAdminUser(uuid: string): Promise<AdminUserDetail> {
+  return request<AdminUserDetail>(`/api/admin/users/${encodeURIComponent(uuid)}`);
+}
+
+export function toggleUserStatus(uuid: string, is_active: boolean): Promise<{ uuid: string; is_active: boolean }> {
+  return request<{ uuid: string; is_active: boolean }>(`/api/admin/users/${encodeURIComponent(uuid)}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ is_active }),
+  });
+}
