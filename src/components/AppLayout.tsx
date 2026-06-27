@@ -9,6 +9,8 @@ import {
   FolderOpen,
   Settings,
   LogOut,
+  Server,
+  Users,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -17,6 +19,8 @@ const NAV_ITEMS = [
   { href: "/publish", label: "发布管理", icon: Send },
   { href: "/content", label: "内容库", icon: FolderOpen },
   { href: "/settings", label: "设置", icon: Settings },
+  { href: "/admin/providers", label: "Provider 管理", icon: Server },
+  { href: "/admin/users", label: "用户管理", icon: Users },
 ];
 
 function logout() {

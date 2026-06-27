@@ -15,7 +15,26 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`${res.status}: ${body}`);
+    // Try to extract a human-readable message from FastAPI 422
+    let message = `${res.status}: ${res.statusText}`;
+    try {
+      const json = JSON.parse(body);
+      if (json.detail) {
+        if (Array.isArray(json.detail)) {
+          // FastAPI validation error: pick the first msg
+          const first = json.detail[0];
+          message = first.msg ?? first.message ?? message;
+        } else {
+          message = json.detail;
+        }
+      } else if (json.message) {
+        message = json.message;
+      }
+    } catch {
+      // Not JSON — use the raw body if short enough
+      if (body.length < 200) message = body;
+    }
+    throw new Error(message);
   }
   return res.json();
 }
@@ -100,7 +119,7 @@ export function login(username: string, password: string) {
 
 export function register(data: {
   username: string;
-  email: string;
+  email?: string;
   password: string;
 }) {
   return request<{ access_token: string }>("/api/auth/register", {
@@ -173,4 +192,188 @@ export function createApiKey(label: string) {
 
 export function deleteApiKey(id: string) {
   return request<void>(`/api/settings/api-keys/${id}`, { method: "DELETE" });
+}
+
+// ─── Admin: Provider Config ───
+
+export interface ProviderConfig {
+  name: string;
+  provider_type: string;
+  display_name: string;
+  base_url: string;
+  api_key?: string;
+  models: string[];
+  config: Record<string, unknown>;
+  enabled: boolean;
+  min_tier: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateProviderRequest {
+  name: string;
+  provider_type: string;
+  display_name: string;
+  base_url: string;
+  api_key: string;
+  models: string[];
+  config?: Record<string, unknown>;
+  enabled?: boolean;
+  min_tier?: number;
+}
+
+export interface UpdateProviderRequest {
+  provider_type?: string;
+  display_name?: string;
+  base_url?: string;
+  api_key?: string;
+  models?: string[];
+  config?: Record<string, unknown>;
+  enabled?: boolean;
+  min_tier?: number;
+}
+
+export interface TestConnectionResult {
+  success: boolean;
+  message: string;
+}
+
+export function getAdminProviders() {
+  return request<ProviderConfig[]>("/api/admin/providers");
+}
+
+export function getAdminProvider(name: string) {
+  return request<ProviderConfig>(`/api/admin/providers/${encodeURIComponent(name)}`);
+}
+
+export function createAdminProvider(data: CreateProviderRequest) {
+  return request<ProviderConfig>("/api/admin/providers", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateAdminProvider(name: string, data: UpdateProviderRequest) {
+  return request<ProviderConfig>(`/api/admin/providers/${encodeURIComponent(name)}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteAdminProvider(name: string) {
+  return request<{ message: string }>(`/api/admin/providers/${encodeURIComponent(name)}`, {
+    method: "DELETE",
+  });
+}
+
+export function testAdminProviderConnection(name: string) {
+  return request<TestConnectionResult>(`/api/admin/providers/${encodeURIComponent(name)}/test`, {
+    method: "POST",
+  });
+}
+
+// ─── User: Providers ───
+
+export function getUserProviders() {
+  return request<ProviderConfig[]>("/api/user/providers");
+}
+
+export function getUserProvider(name: string) {
+  return request<ProviderConfig>(`/api/user/providers/${encodeURIComponent(name)}`);
+}
+
+export function setUserProviderKey(name: string, api_key: string, base_url?: string) {
+  return request<{ message: string }>(`/api/user/providers/${encodeURIComponent(name)}/key`, {
+    method: "PUT",
+    body: JSON.stringify({ api_key, base_url }),
+  });
+}
+
+export function deleteUserProviderKey(name: string) {
+  return request<{ message: string }>(`/api/user/providers/${encodeURIComponent(name)}/key`, {
+    method: "DELETE",
+  });
+}
+
+// ─── User: Subscription & Usage ───
+
+export interface UserUsage {
+  videos_used: number;
+  videos_quota: number;
+  reset_time: string;
+  plan_type: string;
+  date: string;
+}
+
+export interface UserSubscription {
+  plan_type: string;
+  features: string[];
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+}
+
+export function getUserUsage() {
+  return request<UserUsage>("/api/user/usage");
+}
+
+export function getUserSubscription() {
+  return request<UserSubscription>("/api/auth/subscription");
+}
+
+
+// ─── Admin: Users ───
+
+export interface AdminUser {
+  uuid: string;
+  username: string;
+  email: string;
+  subscription_type: string;
+  is_active: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface PaginatedUsers {
+  users: AdminUser[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  subscription: {
+    plan_type: string;
+    status: string;
+    start_date: string | null;
+    end_date: string | null;
+    auto_renew: boolean;
+  } | null;
+  usage: Array<{
+    date: string;
+    videos_created: number;
+    videos_quota: number;
+  }>;
+}
+
+export function getAdminUsers(params: { page?: number; page_size?: number; subscription_type?: string; is_active?: string; search?: string }): Promise<PaginatedUsers> {
+  const qs = new URLSearchParams();
+  if (params.page) qs.set("page", String(params.page));
+  if (params.page_size) qs.set("page_size", String(params.page_size));
+  if (params.subscription_type) qs.set("subscription_type", params.subscription_type);
+  if (params.is_active) qs.set("is_active", params.is_active);
+  if (params.search) qs.set("search", params.search);
+  const query = qs.toString();
+  return request<PaginatedUsers>(`/api/admin/users${query ? "?" + query : ""}`);
+}
+
+export function getAdminUser(uuid: string): Promise<AdminUserDetail> {
+  return request<AdminUserDetail>(`/api/admin/users/${encodeURIComponent(uuid)}`);
+}
+
+export function toggleUserStatus(uuid: string, is_active: boolean): Promise<{ uuid: string; is_active: boolean }> {
+  return request<{ uuid: string; is_active: boolean }>(`/api/admin/users/${encodeURIComponent(uuid)}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ is_active }),
+  });
 }
