@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-29
+
+### Added
+
+- **Dashboard data visualization**: Chart.js integration for job statistics
+  - 7-day trend line chart showing job status progression (completed/processing/pending/failed)
+  - Doughnut chart for status distribution with percentage tooltips
+  - Skeleton loading / error retry / empty states for chart section
+- **Backend**: `GET /api/jobs/stats` — daily job aggregation endpoint
+  - Returns per-day counts (pending/processing/completed/failed) for the last N days
+  - Supports `?days=N` parameter (1-90, default 7)
+  - 5 tests covering empty response, aggregation, auth, days param, invalid input
+- **API Layer**: `JobStatsResponse`, `DailyJobCounts` types and `getJobStats()` function
+- **Dependency**: chart.js ^4.5.1 added to package.json
+
 ## [0.3.0] - 2026-06-29
 
 ### Added
