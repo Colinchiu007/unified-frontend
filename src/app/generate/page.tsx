@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
-import { getGenerateOptions, submitGenerate, getJobDetail, uploadFile, type GenerateOptions } from "@/lib/api";
+import { getGenerateOptions, batchGenerate, getJobDetail, uploadFile, type GenerateOptions, type BatchJobResult } from "@/lib/api";
 import {
   Play,
   CheckCircle2,
@@ -11,6 +11,7 @@ import {
   AlertCircle,
   RefreshCw,
   ChevronRight,
+  ChevronDown,
   FileText,
   Music,
   Settings2,
@@ -275,21 +276,49 @@ function ContentSelector({
   error,
 }: {
   sources: GenerateOptions["content_sources"];
-  selected: string;
-  onChange: (id: string) => void;
+  selected: string[];
+  onChange: (ids: string[]) => void;
   touched: boolean;
   error?: string;
 }) {
-  const hasError = touched && !selected;
+  const hasError = touched && selected.length === 0;
+  const allSelected = sources.length > 0 && selected.length === sources.length;
+
+  function toggle(id: string) {
+    if (selected.includes(id)) {
+      onChange(selected.filter((s) => s !== id));
+    } else {
+      onChange([...selected, id]);
+    }
+  }
+
+  function toggleAll() {
+    if (allSelected) {
+      onChange([]);
+    } else {
+      onChange(sources.map((s) => s.id));
+    }
+  }
+
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium flex items-center gap-2">
-        <FileText className="w-4 h-4 text-muted-foreground" />
-        选择要生成视频的文章
-        <FieldIndicator valid={!!selected} show={touched} />
-      </label>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <FileText className="w-4 h-4 text-muted-foreground" />
+          选择要生成视频的文章
+          <FieldIndicator valid={selected.length > 0} show={touched} />
+        </label>
+        <button
+          type="button"
+          onClick={toggleAll}
+          className="text-xs text-primary hover:underline"
+        >
+          {allSelected ? "取消全选" : `全选（${sources.length}篇）`}
+        </button>
+      </div>
       <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
         {sources.map((s) => {
+          const isSelected = selected.includes(s.id);
           const title =
             s.title ??
             s.source_url?.split("/").pop()?.replace(/-/g, " ") ??
@@ -298,9 +327,9 @@ function ContentSelector({
             <button
               key={s.id}
               type="button"
-              onClick={() => onChange(s.id)}
+              onClick={() => toggle(s.id)}
               className={`w-full text-left p-3 border rounded-lg transition-colors ${
-                selected === s.id
+                isSelected
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : hasError
                     ? "border-red-300 hover:bg-muted/50"
@@ -308,18 +337,26 @@ function ContentSelector({
               }`}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{title}</div>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <StatusBadge status={s.status} />
-                    <span className="text-xs text-muted-foreground">
-                      {s.word_count_original?.toLocaleString() ?? "?"} 字
-                    </span>
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isSelected
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-muted-foreground/30"
+                    }`}
+                  >
+                    {isSelected && <Check className="w-3.5 h-3.5" />}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{title}</div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <StatusBadge status={s.status} />
+                      <span className="text-xs text-muted-foreground">
+                        {s.word_count_original?.toLocaleString() ?? "?"} 字
+                      </span>
+                    </div>
                   </div>
                 </div>
-                {selected === s.id && (
-                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                )}
               </div>
             </button>
           );
@@ -444,27 +481,25 @@ function VideoConfig({
 
 function ConfirmStep({
   options,
-  selectedArticle,
+  selectedArticles,
   voice,
   ratio,
   platform,
 }: {
   options: GenerateOptions;
-  selectedArticle: string;
+  selectedArticles: string[];
   voice: string;
   ratio: string;
   platform: string;
 }) {
-  const article = options.content_sources.find((s) => s.id === selectedArticle);
   const voiceLabel = options.voices.find((v) => v.id === voice)?.label ?? voice;
   const ratioLabel =
     options.video_ratios.find((r) => r.id === ratio)?.label ?? ratio;
   const platformLabel =
     options.prompt_platforms.find((p) => p.id === platform)?.label ?? platform;
-  const title =
-    article?.title ??
-    article?.source_url?.split("/").pop()?.replace(/-/g, " ") ??
-    article?.source_url;
+  const articles = options.content_sources.filter((s) =>
+    selectedArticles.includes(s.id)
+  );
 
   return (
     <div className="space-y-4">
@@ -475,9 +510,9 @@ function ConfirmStep({
 
       <div className="border rounded-lg divide-y">
         <div className="p-4 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">文章</span>
-          <span className="text-sm font-medium truncate max-w-[260px] ml-4">
-            {title}
+          <span className="text-sm text-muted-foreground">文章数量</span>
+          <span className="text-sm font-medium">
+            {articles.length} 篇
           </span>
         </div>
         <div className="p-4 flex items-center justify-between">
@@ -493,6 +528,31 @@ function ConfirmStep({
           <span className="text-sm">{platformLabel}</span>
         </div>
       </div>
+
+      {/* Article list collapsed */}
+      <details className="border rounded-lg">
+        <summary className="p-3 text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors flex items-center gap-2">
+          <ChevronDown className="w-4 h-4" />
+          已选文章
+        </summary>
+        <div className="px-3 pb-3 space-y-1.5 max-h-48 overflow-y-auto">
+          {articles.map((a) => {
+            const title =
+              a.title ??
+              a.source_url?.split("/").pop()?.replace(/-/g, " ") ??
+              a.source_url;
+            return (
+              <div
+                key={a.id}
+                className="text-xs text-muted-foreground flex items-center gap-2 p-1.5"
+              >
+                <FileText className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{title}</span>
+              </div>
+            );
+          })}
+        </div>
+      </details>
     </div>
   );
 }
@@ -507,7 +567,7 @@ export default function GeneratePage() {
 
   // Wizard state
   const [step, setStep] = useState(0);
-  const [selectedArticle, setSelectedArticle] = useState("");
+  const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
   const [voice, setVoice] = useState("");
   const [ratio, setRatio] = useState("");
   const [platform, setPlatform] = useState("");
@@ -518,10 +578,7 @@ export default function GeneratePage() {
   // Submission state
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [result, setResult] = useState<{
-    job_id: string;
-    status: string;
-  } | null>(null);
+  const [results, setResults] = useState<BatchJobResult[] | null>(null);
 
   const fetchOptions = useCallback(async () => {
     setLoading(true);
@@ -555,20 +612,20 @@ export default function GeneratePage() {
 
   async function handleGenerate() {
     // Validate step 0 before submitting
-    if (!selectedArticle) {
+    if (selectedArticles.length === 0) {
       setTouched((prev) => ({ ...prev, 0: true }));
       return;
     }
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const res = await submitGenerate({
-        article_id: selectedArticle,
+      const res = await batchGenerate({
+        article_ids: selectedArticles,
         voice,
         video_ratio: ratio,
         prompt_platform: platform,
       });
-      setResult(res);
+      setResults(res.results);
       setStep(3); // Move to result step
     } catch (err: any) {
       setSubmitError(err.message ?? "提交失败，请稍后重试");
@@ -578,7 +635,7 @@ export default function GeneratePage() {
   }
 
   function canProceedFromStep(s: number): boolean {
-    if (s === 0) return !!selectedArticle;
+    if (s === 0) return selectedArticles.length > 0;
     if (s === 1) return true; // All configs have defaults
     return true;
   }
@@ -655,7 +712,7 @@ export default function GeneratePage() {
         <h1 className="text-2xl font-bold">生成视频</h1>
 
         {/* Step indicators */}
-        {!result && (
+        {!results && (
           <div className="flex items-center gap-0">
             {STEPS.map((s, i) => (
               <div key={s.label} className="flex items-center flex-1">
@@ -701,15 +758,15 @@ export default function GeneratePage() {
         )}
 
         {/* Step content */}
-        {!result && options && (
+        {!results && options && (
           <div className="border rounded-lg bg-card p-6 space-y-6">
             {step === 0 && (
               <ContentSelector
                 sources={options.content_sources}
-                selected={selectedArticle}
-                onChange={setSelectedArticle}
+                selected={selectedArticles}
+                onChange={setSelectedArticles}
                 touched={!!touched[0]}
-                error="请选择一篇文章"
+                error="请至少选择一篇文章"
               />
             )}
             {step === 1 && (
@@ -727,7 +784,7 @@ export default function GeneratePage() {
             {step === 2 && (
               <ConfirmStep
                 options={options}
-                selectedArticle={selectedArticle}
+                selectedArticles={selectedArticles}
                 voice={voice}
                 ratio={ratio}
                 platform={platform}
@@ -737,7 +794,7 @@ export default function GeneratePage() {
             {/* File upload zone — shown only in step 1 */}
             {step === 1 && (
               <UploadZoneWrapper onComplete={(id) => {
-                setSelectedArticle(id);
+                setSelectedArticles((prev) => [...prev, id]);
                 // Refresh options to include new article
                 fetchOptions();
               }} />
@@ -782,7 +839,7 @@ export default function GeneratePage() {
                   ) : (
                     <>
                       <Play className="w-4 h-4" />
-                      开始生成
+                      开始生成 ({selectedArticles.length} 个视频)
                     </>
                   )}
                 </button>
@@ -792,12 +849,37 @@ export default function GeneratePage() {
         )}
 
         {/* Result / Progress tracking */}
-        {result && (
+        {results && (
           <div className="border rounded-lg bg-card p-6 space-y-4">
-            <ProgressTracker
-              jobId={result.job_id}
-              initialStatus={result.status}
-            />
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Play className="w-4 h-4 text-muted-foreground" />
+                批量生成进度 ({results.length} 个视频)
+              </label>
+            </div>
+            <div className="space-y-3">
+              {results.map((r, i) => (
+                <details
+                  key={r.job_id}
+                  className="border rounded-lg"
+                  open={results.length <= 3}
+                >
+                  <summary className="p-3 text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors flex items-center gap-2">
+                    <ChevronDown className="w-4 h-4" />
+                    视频 #{i + 1}
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {r.status === "pending" ? "排队中" : r.status}
+                    </span>
+                  </summary>
+                  <div className="px-3 pb-3">
+                    <ProgressTracker
+                      jobId={r.job_id}
+                      initialStatus={r.status}
+                    />
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
         )}
       </div>
