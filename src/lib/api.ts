@@ -41,6 +41,19 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 // ─── Data Types ───
 
+export interface DailyJobCounts {
+  date: string;
+  pending: number;
+  processing: number;
+  completed: number;
+  failed: number;
+}
+
+export interface JobStatsResponse {
+  daily: DailyJobCounts[];
+  totals: { pending: number; processing: number; completed: number; failed: number };
+}
+
 export interface DashboardData {
   trending: {
     title: string;
@@ -129,6 +142,10 @@ export function register(data: {
 }
 
 // ─── Dashboard ───
+
+export function getJobStats(days: number = 7) {
+  return request<JobStatsResponse>(`/api/jobs/stats?days=${days}`);
+}
 
 export function getDashboard() {
   return request<DashboardData>("/api/v1/aggregator/dashboard");

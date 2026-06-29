@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
+import DashboardCharts from "@/components/DashboardCharts";
 import { getDashboard, type DashboardData } from "@/lib/api";
 import {
   AlertCircle,
@@ -196,6 +197,9 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Charts */}
+        <DashboardCharts />
 
         {/* Trending */}
         <div>
