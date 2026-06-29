@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
-import { getGenerateOptions } from "@/lib/api";
+import { getGenerateOptions, exportArticles } from "@/lib/api";
 import {
   AlertCircle,
   RefreshCw,
@@ -15,6 +15,9 @@ import {
   FolderOpen,
   CalendarDays,
   FileDigit,
+  Trash2,
+  Download,
+  CheckSquare,
 } from "lucide-react";
 
 // ── Skeleton ──
@@ -105,6 +108,12 @@ export default function ContentPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDeleting, setBatchDeleting] = useState(false);
+
+  const handleExport = useCallback((format: "csv" | "json") => {
+    exportArticles(format).catch((err: any) => setError(err.message));
+  }, []);
 
   const fetchContent = useCallback(async () => {
     setLoading(true);
@@ -131,6 +140,7 @@ export default function ContentPage() {
     fetchContent();
   }, [fetchContent]);
 
+
   // ── Client-side search / filter ──
   const filtered = useMemo(() => {
     if (!search.trim()) return articles;
@@ -142,6 +152,45 @@ export default function ContentPage() {
     );
   }, [articles, search]);
 
+  // Batch operations
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((a: any) => a.id)));
+    }
+  }, [filtered, selectedIds]);
+
+  const handleBatchDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`确定删除选中的 ${selectedIds.size} 条内容？`)) return;
+    setBatchDeleting(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await fetch("/api/articles/batch-delete", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ article_ids: Array.from(selectedIds) }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setSelectedIds(new Set());
+      await fetchContent();
+    } catch (err: any) {
+      setError(err.message ?? "批量删除失败");
+    } finally {
+      setBatchDeleting(false);
+    }
+  }, [selectedIds, fetchContent]);
   // ── Loading ──
   if (loading) {
     return (
@@ -178,13 +227,41 @@ export default function ContentPage() {
     <AppLayout>
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">内容库</h1>
-          {!loading && (
-            <span className="text-sm text-muted-foreground">
-              共 {filtered.length} 条
-            </span>
-          )}
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">内容库</h1>
+            {!loading && (
+              <span className="text-sm text-muted-foreground">
+                {selectedIds.size > 0
+                  ? `已选 ${selectedIds.size} / ${filtered.length} 条`
+                  : `共 ${filtered.length} 条`}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <button
+                onClick={handleBatchDelete}
+                disabled={batchDeleting}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-md text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {batchDeleting ? "删除中..." : `删除选中 (${selectedIds.size})`}
+              </button>
+            )}
+            <div className="relative group">
+              <button className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-medium hover:bg-muted transition-colors">
+                <Download className="w-3.5 h-3.5" />
+                导出
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div className="absolute right-0 top-full mt-1 w-28 bg-card border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                <button onClick={() => handleExport("csv")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-t-lg">导出 CSV</button>
+                <button onClick={() => handleExport("json")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-b-lg">导出 JSON</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Search bar */}
@@ -230,15 +307,25 @@ export default function ContentPage() {
                 className="border rounded-lg bg-card transition-colors"
               >
                 {/* Card header (always visible) */}
-                <button
-                  onClick={() =>
-                    setExpandedId(isExpanded ? null : article.id)
-                  }
-                  className="w-full flex items-start gap-3 p-4 text-left hover:bg-muted/50 transition-colors rounded-t-lg"
-                >
-                  <div className="p-1.5 rounded-md bg-primary/5 text-primary mt-0.5">
-                    <FileText className="w-4 h-4" />
+                <div className="flex items-start">
+                  {/* Checkbox */}
+                  <div className="p-4 pr-0 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(article.id)}
+                      onChange={() => toggleSelect(article.id)}
+                      className="w-4 h-4 rounded border-muted-foreground/30 text-primary focus:ring-primary/20 cursor-pointer mt-1"
+                    />
                   </div>
+                  <button
+                    onClick={() =>
+                      setExpandedId(isExpanded ? null : article.id)
+                    }
+                    className="flex-1 flex items-start gap-3 p-4 text-left hover:bg-muted/50 transition-colors rounded-t-lg"
+                  >
+                    <div className="p-1.5 rounded-md bg-primary/5 text-primary mt-0.5">
+                      <FileText className="w-4 h-4" />
+                    </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">{title}</div>
@@ -270,6 +357,7 @@ export default function ContentPage() {
                     )}
                   </div>
                 </button>
+                </div>
 
                 {/* Expanded detail */}
                 {isExpanded && (

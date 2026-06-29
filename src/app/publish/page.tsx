@@ -6,6 +6,7 @@ import AppLayout from "@/components/AppLayout";
 import {
   getJobs,
   retryJob,
+  exportJobs,
   type JobStatus,
 } from "@/lib/api";
 import {
@@ -18,6 +19,7 @@ import {
   RotateCcw,
   XCircle,
   Hourglass,
+  Download,
 } from "lucide-react";
 import { StatusBadge, EmptyState } from "@/components/ui";
 
@@ -381,6 +383,14 @@ export default function PublishPage() {
     }
   }, [hasActive, fetchJobs]);
 
+  async function handleExportPublish(format: "csv" | "json") {
+    try {
+      await exportJobs(format);
+    } catch (err: any) {
+      setError(err.message ?? "导出失败");
+    }
+  }
+
   async function handleRetry(jobId: string) {
     setRetrying(jobId);
     try {
@@ -448,13 +458,26 @@ export default function PublishPage() {
               )}
             </p>
           </div>
-          <button
-            onClick={fetchJobs}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-sm hover:bg-muted transition-colors self-start sm:self-auto"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            刷新
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="relative group">
+              <button className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-sm hover:bg-muted transition-colors">
+                <Download className="w-3.5 h-3.5" />
+                导出
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div className="absolute right-0 top-full mt-1 w-28 bg-card border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                <button onClick={() => handleExportPublish("csv")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-t-lg">导出 CSV</button>
+                <button onClick={() => handleExportPublish("json")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-b-lg">导出 JSON</button>
+              </div>
+            </div>
+            <button
+              onClick={fetchJobs}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-sm hover:bg-muted transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              刷新
+            </button>
+          </div>
         </div>
 
         {/* Filter Tabs — responsive: wrap on mobile */}

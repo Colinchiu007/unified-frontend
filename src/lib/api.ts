@@ -377,3 +377,60 @@ export function toggleUserStatus(uuid: string, is_active: boolean): Promise<{ uu
     body: JSON.stringify({ is_active }),
   });
 }
+
+
+// ─── Upload ───
+
+export async function uploadFile(file: File): Promise<{
+  article_id: string;
+  filename: string;
+  word_count: number;
+  status: string;
+}> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_BASE}/api/v1/aggregator/upload`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Upload failed: ${res.status} ${body}`);
+  }
+  return res.json();
+}
+
+// ─── Export helpers ───
+
+function triggerDownload(content: Blob, filename: string) {
+  const url = URL.createObjectURL(content);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export async function exportArticles(format: "csv" | "json") {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const res = await fetch(`${API_BASE}/api/articles/export?format=${format}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+  const blob = await res.blob();
+  triggerDownload(blob, `articles_export.${format}`);
+}
+
+export async function exportJobs(format: "csv" | "json") {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const res = await fetch(`${API_BASE}/api/jobs/export?format=${format}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+  const blob = await res.blob();
+  triggerDownload(blob, `jobs_export.${format}`);
+}
