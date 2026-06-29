@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
-import { getGenerateOptions, submitGenerate, getJobDetail, type GenerateOptions } from "@/lib/api";
+import { getGenerateOptions, submitGenerate, getJobDetail, uploadFile, type GenerateOptions } from "@/lib/api";
 import {
   Play,
   CheckCircle2,
@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui";
+import FileUploadZone from "@/components/FileUploadZone";
 
 // ── Constants ──
 
@@ -334,31 +335,10 @@ function ContentSelector({
   );
 }
 
-// ── File Upload Drop Zone (UI only) ──
+// ── File Upload Zone ──
 
-function FileUploadZone() {
-  const [dragging, setDragging] = useState(false);
-
-  return (
-    <div
-      onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={(e) => { e.preventDefault(); setDragging(false); }}
-      className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-        dragging
-          ? "border-primary bg-primary/5"
-          : "border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-muted/30"
-      }`}
-    >
-      <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground/60" />
-      <p className="text-sm font-medium text-muted-foreground">
-        拖拽文件到此处上传
-      </p>
-      <p className="text-xs text-muted-foreground/50 mt-1">
-        支持 .mp4, .avi, .mov 格式（即将开放）
-      </p>
-    </div>
-  );
+function UploadZoneWrapper({ onComplete }: { onComplete: (id: string) => void }) {
+  return <FileUploadZone onUploadComplete={onComplete} />;
 }
 
 // ── Step 2: Video Config ──
@@ -756,7 +736,11 @@ export default function GeneratePage() {
 
             {/* File upload zone — shown only in step 1 */}
             {step === 1 && (
-              <FileUploadZone />
+              <UploadZoneWrapper onComplete={(id) => {
+                setSelectedArticle(id);
+                // Refresh options to include new article
+                fetchOptions();
+              }} />
             )}
 
             {/* Submit error */}
