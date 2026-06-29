@@ -164,6 +164,34 @@ export function submitGenerate(data: GenerateRequest) {
   );
 }
 
+// ── Batch Generate ──
+
+export interface BatchGenerateRequest {
+  article_ids: string[];
+  voice?: string;
+  video_ratio?: string;
+  prompt_platform?: string;
+}
+
+export interface BatchJobResult {
+  job_id: string;
+  article_id: string;
+  status: string;
+}
+
+export interface BatchGenerateResponse {
+  results: BatchJobResult[];
+  total: number;
+  missing: string[] | null;
+}
+
+export function batchGenerate(data: BatchGenerateRequest) {
+  return request<BatchGenerateResponse>(
+    "/api/v1/aggregator/batch-generate",
+    { method: "POST", body: JSON.stringify(data) },
+  );
+}
+
 // ─── Jobs ───
 
 export function getJobs(status?: string) {
