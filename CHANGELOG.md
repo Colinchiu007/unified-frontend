@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-06-29
+
+### Added
+
+- **Batch video generation**: Select multiple articles and generate videos with one click
+  - ContentSelector: Checkbox multi-select with select-all / deselect-all toggle
+  - ConfirmStep: Batch summary showing article count with collapsible article list
+  - Submit button shows generation count (e.g., "开始生成 (3 个视频)")
+  - Results page shows collapsible ProgressTracker list for each submitted job
+- **Backend**: `POST /api/v1/aggregator/batch-generate` — batch generation endpoint
+  - Accepts 1-20 article_ids per request with validation
+  - Creates N job records and dispatches N BackgroundTasks in a single request
+  - Returns `{results: [{job_id, article_id, status}], total, missing}`
+  - Protected by `batch_operations` feature gate (already enabled for batch-delete)
+  - 7 tests covering auth, single/multiple articles, partial/all missing, empty/max validations
+
 ## [0.4.0] - 2026-06-29
 
 ### Added
