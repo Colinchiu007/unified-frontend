@@ -21,7 +21,10 @@
     "chart.js": "^4.5.1",
     "clsx": "^2.1.0",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "next-intl": "^3.26.0",
+    "@serwist/next": "^9.0.0",
+    "serwist": "^9.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

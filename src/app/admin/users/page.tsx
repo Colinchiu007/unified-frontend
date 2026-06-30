@@ -277,7 +277,7 @@ export default function AdminUsersPage() {
             {users.map((u) => (
               <div
                 key={u.uuid}
-                className="grid grid-cols-12 gap-3 px-5 py-3.5 border-b last:border-b-0 items-center text-sm hover:bg-muted/20 transition-colors cursor-pointer"
+                className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-3 px-3 md:px-5 py-3 md:py-3.5 border-b last:border-b-0 md:items-center text-sm hover:bg-muted/20 transition-colors cursor-pointer"
                 onClick={() => openDetail(u.uuid)}
               >
                 <div className="col-span-3 font-medium truncate" title={u.username}>{u.username}</div>
@@ -379,7 +379,7 @@ export default function AdminUsersPage() {
                     {/* User Info */}
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">基本信息</h3>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         <div><span className="text-muted-foreground">UUID:</span> <code className="text-xs bg-muted px-1 py-0.5 rounded">{detailData.uuid}</code></div>
                         <div><span className="text-muted-foreground">用户名:</span> {detailData.username}</div>
                         <div><span className="text-muted-foreground">邮箱:</span> {detailData.email}</div>
@@ -403,7 +403,7 @@ export default function AdminUsersPage() {
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">订阅信息</h3>
                       {detailData.subscription ? (
-                        <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                           <div><span className="text-muted-foreground">套餐:</span> {detailData.subscription.plan_type}</div>
                           <div><span className="text-muted-foreground">状态:</span> {detailData.subscription.status}</div>
                           <div><span className="text-muted-foreground">开始:</span> {detailData.subscription.start_date ? new Date(detailData.subscription.start_date).toLocaleDateString("zh-CN") : "-"}</div>
