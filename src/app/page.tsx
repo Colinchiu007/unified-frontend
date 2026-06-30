@@ -3,7 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
-import DashboardCharts from "@/components/DashboardCharts";
+import dynamic from "next/dynamic";
+
+const DashboardCharts = dynamic(() => import("@/components/DashboardCharts"), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-muted rounded-lg animate-pulse" />,
+});
 import { getDashboard, type DashboardData } from "@/lib/api";
 import {
   AlertCircle,
