@@ -24,8 +24,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <form onSubmit={handleSubmit} className="w-96 p-8 border rounded-lg bg-card">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm mx-4 p-6 sm:p-8 border rounded-lg bg-card">
         <h1 className="text-2xl font-bold mb-6">TrendScope</h1>
         <p className="text-sm text-muted-foreground mb-6">
           一站式视频生成平台
