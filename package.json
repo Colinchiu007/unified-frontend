@@ -8,9 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "analyze": "ANALYZE=true next build",
-    "analyze:browser": "ANALYZE=true ANALYZE_MODE=static next build"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "next": "^15.0.0",
@@ -34,7 +32,6 @@
     "tailwindcss": "^3.4.0",
     "postcss": "^8.4.0",
     "autoprefixer": "^10.4.0",
-    "vitest": "^3.0.0",
-    "@next/bundle-analyzer": "^15.0.0"
+    "vitest": "^3.0.0"
   }
 }

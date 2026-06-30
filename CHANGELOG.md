@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-06-30
+
+### Added
+
+- **PWA support**: Progressive Web App manifest, service worker, and app icons
+  - manifest.json with theme_color, display modes, and icon declarations
+  - Service worker (serwist) with network-first caching strategy
+  - 192x192 and 512x512 SVG app icons for home screen install
+- **Mobile responsive**: Enhanced mobile responsiveness across pages
+  - Generate page grid breakpoint fixes for better mobile layout
+  - Admin table card-style layout on mobile viewport
+  - Settings/Providers grid responsive column adjustment
+
+### Changed
+
+- **CI pipeline**: Simplified GitHub Actions workflow
+  - Separated test and lint jobs for faster feedback
+  - Removed bundle-size check scripts (analyze, check-bundle-size.mjs)
+  - Removed @next/bundle-analyzer dependency
+- **Tailwind dark mode**: Switched from selector strategy to class strategy for PWA compatibility
+- **tsconfig.json**: Removed test file exclusions for broader type coverage
+
 ## [0.4.1] - 2026-06-29
 
 ### Added

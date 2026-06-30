@@ -30,3 +30,6 @@ next-env.d.ts
 # IDE
 .vscode/
 .idea/
+CLAUDE.local.md
+git-uf
+.gitignore-test
