@@ -1,5 +1,6 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   output: "standalone",
   /** Enable HTTP compression for smaller responses */
   compress: true,
@@ -20,6 +21,6 @@ const withBundleAnalyzer =
         enabled: true,
         openAnalyzer: process.env.ANALYZE_MODE !== "static",
       })
-    : (config) => config;
+    : (config: NextConfig) => config;
 
-module.exports = withBundleAnalyzer(nextConfig);
+export default withBundleAnalyzer(nextConfig);
