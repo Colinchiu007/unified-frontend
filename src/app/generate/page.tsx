@@ -295,7 +295,7 @@ function VideoConfig({
           <Settings2 className="w-3.5 h-3.5" />
           视频比例
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {options.video_ratios.map((r) => (
             <button
               key={r.id}
@@ -319,7 +319,7 @@ function VideoConfig({
           <Sparkles className="w-3.5 h-3.5" />
           图片风格
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {options.prompt_platforms.map((p) => (
             <button
               key={p.id}

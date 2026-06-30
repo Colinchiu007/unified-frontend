@@ -400,7 +400,7 @@ export default function AdminProvidersPage() {
                   </div>
                 ) : (
                   /* Data row */
-                  <div className="grid grid-cols-12 gap-3 px-5 py-3.5 border-b last:border-b-0 items-center text-sm hover:bg-muted/20 transition-colors">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-3 px-3 md:px-5 py-3 md:py-3.5 border-b last:border-b-0 md:items-center text-sm hover:bg-muted/20 transition-colors">
                     <div className="col-span-2 font-medium truncate" title={p.name}>{p.name}</div>
                     <div className="col-span-1">
                       <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${TYPE_BADGE[p.provider_type] ?? "bg-gray-100 text-gray-700"}`}>
