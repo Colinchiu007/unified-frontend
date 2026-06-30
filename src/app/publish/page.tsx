@@ -27,27 +27,6 @@ import { StatusBadge, EmptyState } from "@/components/ui";
 
 type FilterValue = "" | "pending" | "processing" | "done" | "failed";
 
-const FILTER_TABS: { value: FilterValue; label: string }[] = [
-  { value: "", label: "全部" },
-  { value: "pending", label: "排队中" },
-  { value: "processing", label: "生成中" },
-  { value: "done", label: "已完成" },
-  { value: "failed", label: "失败" },
-];
-
-const FILTER_EMPTY_MESSAGES: Record<string, { title: string; description: string }> = {
-  "": { title: "暂无任务", description: "创建一个视频生成任务，它会出现在这里" },
-  pending: { title: "暂无排队中的任务", description: "当前没有等待处理的任务" },
-  processing: { title: "暂无生成中的任务", description: "当前没有正在处理的任务" },
-  done: { title: "暂无已完成的任务", description: "已完成的任务会显示在这里" },
-  failed: { title: "暂无失败的任务", description: "失败的任务会显示在这里" },
-};
-
-const JOB_TYPE_LABELS: Record<string, string> = {
-  video: "视频生成",
-  story2video: "故事转视频",
-};
-
 const STATUS_ICONS: Record<string, typeof Clock> = {
   pending: Hourglass,
   queued: Hourglass,
@@ -158,10 +137,10 @@ function formatDuration(start?: string, end?: string): string | null {
     const ms = new Date(end).getTime() - new Date(start).getTime();
     if (ms < 0) return null;
     const seconds = Math.floor(ms / 1000);
-    if (seconds < 60) return `${seconds}秒`;
+    if (seconds < 60) return t("publish.seconds", { s: seconds });
     const minutes = Math.floor(seconds / 60);
     const remainSec = seconds % 60;
-    return remainSec > 0 ? `${minutes}分${remainSec}秒` : `${minutes}分钟`;
+    return remainSec > 0 ? t("publish.minutes_seconds", { m: minutes, s: remainSec }) : t("publish.minutes", { m: minutes });
   } catch {
     return null;
   }
@@ -203,7 +182,7 @@ function JobCard({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-medium">
-                  {JOB_TYPE_LABELS[job.job_type ?? "video"] ?? "视频任务"}
+                  {JOB_TYPE_LABELS[job.job_type ?? "video"] ?? t("publish.type_video")}
                 </span>
                 <StatusBadge status={job.status} />
                 {duration && (
@@ -250,7 +229,7 @@ function JobCard({
                 onClick={() => onRetry(job.id)}
                 disabled={isRetrying}
                 className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
-                title="重试"
+                title={t("common.retry")}
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
@@ -258,7 +237,7 @@ function JobCard({
             <button
               onClick={() => setExpanded(!expanded)}
               className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-              title={expanded ? "收起" : "详情"}
+              title={expanded ? t("common.collapse") : t("common.details")}
             >
               <svg
                 className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`}
@@ -284,31 +263,31 @@ function JobCard({
           </div>
           {job.job_type && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-16 flex-shrink-0">类型</span>
+              <span className="text-muted-foreground w-16 flex-shrink-0">{t("publish.job_type")}</span>
               <span>{JOB_TYPE_LABELS[job.job_type] ?? job.job_type}</span>
             </div>
           )}
           {job.created_at && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-16 flex-shrink-0">创建时间</span>
+              <span className="text-muted-foreground w-16 flex-shrink-0">{t("publish.created_at")}</span>
               <span>{new Date(job.created_at).toLocaleString("zh-CN")}</span>
             </div>
           )}
           {job.updated_at && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-16 flex-shrink-0">更新时间</span>
+              <span className="text-muted-foreground w-16 flex-shrink-0">{t("publish.updated_at")}</span>
               <span>{new Date(job.updated_at).toLocaleString("zh-CN")}</span>
             </div>
           )}
           {duration && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-16 flex-shrink-0">耗时</span>
+              <span className="text-muted-foreground w-16 flex-shrink-0">{t("publish.duration")}</span>
               <span className="font-medium">{duration}</span>
             </div>
           )}
           {job.output_data?.output_path != null && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-16 flex-shrink-0">输出</span>
+              <span className="text-muted-foreground w-16 flex-shrink-0">{t("publish.output")}</span>
               <code className="bg-muted px-1.5 py-0.5 rounded font-mono truncate max-w-[300px]">
                 {job.output_data.output_path as string}
               </code>
@@ -317,7 +296,7 @@ function JobCard({
           {job.status === "failed" && job.error && (
             <div className="flex items-start gap-2">
               <span className="text-muted-foreground w-16 flex-shrink-0 mt-0.5">
-                错误
+                {t("publish.error")}
               </span>
               <span className="text-red-600 break-all">{job.error}</span>
             </div>
@@ -331,6 +310,7 @@ function JobCard({
 // ── Main Page ──
 
 export default function PublishPage() {
+  const { t } = useTranslations();
   const router = useRouter();
   const [jobs, setJobs] = useState<JobStatus[]>([]);
   const [total, setTotal] = useState(0);
@@ -339,6 +319,28 @@ export default function PublishPage() {
   const [filter, setFilter] = useState<FilterValue>("");
   const [retrying, setRetrying] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // ── Inline constants ──
+  const FILTER_TABS: { value: FilterValue; label: string }[] = [
+    { value: "" as const, label: t("publish.filter_all") },
+    { value: "pending" as const, label: t("publish.filter_pending") },
+    { value: "processing" as const, label: t("publish.filter_processing") },
+    { value: "done" as const, label: t("publish.filter_done") },
+    { value: "failed" as const, label: t("publish.filter_failed") },
+  ];
+  
+  const FILTER_EMPTY_MESSAGES: Record<string, { title: string; description: string }> = {
+    "": { title: t("publish.empty_all"), description: t("publish.empty_all_desc") },
+    pending: { title: t("publish.empty_pending"), description: t("publish.empty_pending_desc") },
+    processing: { title: t("publish.empty_processing"), description: t("publish.empty_processing_desc") },
+    done: { title: t("publish.empty_done"), description: t("publish.empty_done_desc") },
+    failed: { title: t("publish.empty_failed"), description: t("publish.empty_failed_desc") },
+  };
+  
+  const JOB_TYPE_LABELS: Record<string, string> = {
+    video: t("publish.type_video"),
+    story2video: t("publish.type_story2video"),
+  };
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -355,7 +357,7 @@ export default function PublishPage() {
         router.push("/login");
         return;
       }
-      setError(err.message ?? "加载失败");
+      setError(err.message ?? t("common.load_failed"));
     } finally {
       setLoading(false);
     }
@@ -387,7 +389,7 @@ export default function PublishPage() {
     try {
       await exportJobs(format);
     } catch (err: any) {
-      setError(err.message ?? "导出失败");
+      setError(err.message ?? t("common.export_failed"));
     }
   }
 
@@ -397,7 +399,7 @@ export default function PublishPage() {
       await retryJob(jobId);
       await fetchJobs();
     } catch (err: any) {
-      setError(err.message ?? "重试失败");
+      setError(err.message ?? t("common.retry_failed"));
     } finally {
       setRetrying(null);
     }
@@ -422,7 +424,7 @@ export default function PublishPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-0">
           <div className="flex flex-col items-center justify-center min-h-[40vh] text-center">
             <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-            <p className="text-destructive font-medium mb-1">加载失败</p>
+            <p className="text-destructive font-medium mb-1">{t("common.load_failed")}</p>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">
               {error}
             </p>
@@ -431,7 +433,7 @@ export default function PublishPage() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
-              重试
+              {t("common.retry")}
             </button>
           </div>
         </div>
@@ -447,13 +449,13 @@ export default function PublishPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">发布管理</h1>
+            <h1 className="text-2xl font-bold">{t("publish.title")}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              共 {total} 个任务
+              {t("publish.subtitle")}: {total}
               {hasActive && (
                 <span className="ml-2 text-blue-600 inline-flex items-center gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" />
-                  自动刷新中
+                  {t("common.refreshing")}
                 </span>
               )}
             </p>
@@ -462,12 +464,12 @@ export default function PublishPage() {
             <div className="relative group">
               <button className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-sm hover:bg-muted transition-colors">
                 <Download className="w-3.5 h-3.5" />
-                导出
+                {t("common.export")}
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </button>
               <div className="absolute right-0 top-full mt-1 w-28 bg-card border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                <button onClick={() => handleExportPublish("csv")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-t-lg">导出 CSV</button>
-                <button onClick={() => handleExportPublish("json")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-b-lg">导出 JSON</button>
+                <button onClick={() => handleExportPublish("csv")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-t-lg">{t("common.export")} CSV</button>
+                <button onClick={() => handleExportPublish("json")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-b-lg">{t("common.export")} JSON</button>
               </div>
             </div>
             <button
@@ -475,7 +477,7 @@ export default function PublishPage() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-sm hover:bg-muted transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              刷新
+              {t("common.refresh")}
             </button>
           </div>
         </div>
@@ -505,7 +507,7 @@ export default function PublishPage() {
               onClick={() => setError(null)}
               className="text-destructive/70 hover:text-destructive ml-2 flex-shrink-0"
             >
-              关闭
+              {t("common.close")}
             </button>
           </div>
         )}
@@ -518,7 +520,7 @@ export default function PublishPage() {
             description={emptyMsg.description}
             action={
               filter === ""
-                ? { label: "去生成", onClick: () => router.push("/generate") }
+                ? { label: t("publish.type_video"), onClick: () => router.push("/generate") }
                 : undefined
             }
           />
