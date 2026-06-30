@@ -1,0 +1,15 @@
+{
+  "name": "TrendScope",
+  "short_name": "TrendScope",
+  "description": "一站式视频生成平台 — 热榜发现 → AI 改写 → 视频生成 → 多平台发布",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"},
+    {"src": "/icons/icon-384.svg", "sizes": "384x384", "type": "image/svg+xml"},
+    {"src": "/icons/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml"}
+  ]
+}
