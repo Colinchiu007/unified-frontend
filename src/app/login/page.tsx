@@ -4,8 +4,10 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/api";
+import { useTranslations } from "@/i18n/TranslationsProvider";
 
 export default function LoginPage() {
+  const { t } = useTranslations();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,16 +21,16 @@ export default function LoginPage() {
       localStorage.setItem("token", res.access_token);
       router.push("/");
     } catch (err: any) {
-      setError(err.message ?? "登录失败");
+      setError(err.message ?? t("login.login_failed"));
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm mx-4 p-6 sm:p-8 border rounded-lg bg-card">
-        <h1 className="text-2xl font-bold mb-6">TrendScope</h1>
+        <h1 className="text-2xl font-bold mb-6">{t("login.title")}</h1>
         <p className="text-sm text-muted-foreground mb-6">
-          一站式视频生成平台
+          {t("login.subtitle")}
         </p>
 
         {error && (
@@ -39,7 +41,7 @@ export default function LoginPage() {
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">用户名 / 邮箱</label>
+            <label className="text-sm font-medium">{t("login.username_label")}</label>
             <input
               className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
               value={username}
@@ -48,7 +50,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">密码</label>
+            <label className="text-sm font-medium">{t("login.password_label")}</label>
             <input
               type="password"
               className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
@@ -61,13 +63,13 @@ export default function LoginPage() {
             type="submit"
             className="w-full py-2 bg-primary text-primary-foreground rounded-md font-medium"
           >
-            登录
+            {t("login.submit")}
           </button>
 
           <p className="text-center text-sm text-muted-foreground pt-2">
-            还没有账号？{" "}
+            {t("login.no_account")}{" "}
             <Link href="/register" className="text-primary hover:underline font-medium">
-              去注册
+              {t("login.register_link")}
             </Link>
           </p>
         </div>

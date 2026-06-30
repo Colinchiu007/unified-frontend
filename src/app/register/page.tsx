@@ -4,8 +4,10 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { register } from "@/lib/api";
+import { useTranslations } from "@/i18n/TranslationsProvider";
 
 export default function RegisterPage() {
+  const { t } = useTranslations();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,11 +21,11 @@ export default function RegisterPage() {
     setError("");
 
     if (password !== confirm) {
-      setError("两次输入的密码不一致");
+      setError(t("register.password_mismatch"));
       return;
     }
     if (password.length < 6) {
-      setError("密码至少 6 位");
+      setError(t("register.password_too_short"));
       return;
     }
 
@@ -37,18 +39,18 @@ export default function RegisterPage() {
       localStorage.setItem("token", res.access_token);
       router.push("/");
     } catch (err: any) {
-      setError(err.message ?? "注册失败");
+      setError(err.message ?? t("register.register_failed"));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <form onSubmit={handleSubmit} className="w-96 p-8 border rounded-lg bg-card">
-        <h1 className="text-2xl font-bold mb-1">注册账号</h1>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm mx-4 p-6 sm:p-8 border rounded-lg bg-card">
+        <h1 className="text-2xl font-bold mb-1">{t("register.title")}</h1>
         <p className="text-sm text-muted-foreground mb-6">
-          加入 TrendScope，开始使用一站式视频生成平台
+          {t("register.subtitle")}
         </p>
 
         {error && (
@@ -59,7 +61,7 @@ export default function RegisterPage() {
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">用户名</label>
+            <label className="text-sm font-medium">{t("register.username_label")}</label>
             <input
               className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
               value={username}
@@ -69,7 +71,9 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">邮箱 <span className="text-muted-foreground font-normal">(选填)</span></label>
+            <label className="text-sm font-medium">
+              {t("register.email_label")} <span className="text-muted-foreground font-normal">{t("register.email_optional")}</span>
+            </label>
             <input
               type="email"
               className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
@@ -78,7 +82,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">密码</label>
+            <label className="text-sm font-medium">{t("register.password_label")}</label>
             <input
               type="password"
               className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
@@ -89,7 +93,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">确认密码</label>
+            <label className="text-sm font-medium">{t("register.confirm_label")}</label>
             <input
               type="password"
               className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
@@ -104,13 +108,13 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full py-2 bg-primary text-primary-foreground rounded-md font-medium disabled:opacity-50"
           >
-            {loading ? "注册中…" : "注册"}
+            {loading ? t("register.submitting") : t("register.submit")}
           </button>
 
           <p className="text-center text-sm text-muted-foreground pt-2">
-            已有账号？{" "}
+            {t("register.has_account")}{" "}
             <Link href="/login" className="text-primary hover:underline font-medium">
-              去登录
+              {t("register.login_link")}
             </Link>
           </p>
         </div>

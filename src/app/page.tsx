@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
 import dynamic from "next/dynamic";
+import { useTranslations } from "@/i18n/TranslationsProvider";
 
 const DashboardCharts = dynamic(() => import("@/components/DashboardCharts"), {
   ssr: false,
@@ -84,6 +85,7 @@ function PlatformBadge({ code }: { code: string }) {
 // ── Page ──
 
 export default function DashboardPage() {
+  const { t } = useTranslations();
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,7 +95,6 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      // Check token early
       if (typeof window !== "undefined" && !localStorage.getItem("token")) {
         router.push("/login");
         return;
@@ -115,12 +116,10 @@ export default function DashboardPage() {
     fetchDashboard();
   }, [fetchDashboard]);
 
-  // ── Loading state ──
   if (loading) {
     return (
       <AppLayout>
         <div className="max-w-5xl mx-auto space-y-8">
-          {/* Welcome skeleton */}
           <div className="space-y-2">
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-4 w-32" />
@@ -135,20 +134,19 @@ export default function DashboardPage() {
     );
   }
 
-  // ── Error state ──
   if (error) {
     return (
       <AppLayout>
         <div className="max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[40vh] text-center">
           <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-          <p className="text-destructive font-medium mb-1">加载失败</p>
+          <p className="text-destructive font-medium mb-1">{t("dashboard.loading_failed")}</p>
           <p className="text-sm text-muted-foreground mb-6 max-w-xs">{error}</p>
           <button
             onClick={fetchDashboard}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
-            重试
+            {t("dashboard.retry")}
           </button>
         </div>
       </AppLayout>
@@ -160,13 +158,11 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Welcome */}
         <div>
-          <h1 className="text-2xl font-bold">你好，{user.username}</h1>
-          <p className="text-muted-foreground text-sm">今天的数据概览</p>
+          <h1 className="text-2xl font-bold">{t("dashboard.title", { username: user.username })}</h1>
+          <p className="text-muted-foreground text-sm">{t("dashboard.subtitle")}</p>
         </div>
 
-        {/* Stats cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-4 border rounded-lg bg-card flex items-center gap-4">
             <div className="p-2.5 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">
@@ -176,7 +172,7 @@ export default function DashboardPage() {
               <div className="text-3xl font-bold tabular-nums">
                 {today_stats.processing}
               </div>
-              <div className="text-sm text-muted-foreground">生成中</div>
+              <div className="text-sm text-muted-foreground">{t("dashboard.processing")}</div>
             </div>
           </div>
           <div className="p-4 border rounded-lg bg-card flex items-center gap-4">
@@ -187,7 +183,7 @@ export default function DashboardPage() {
               <div className="text-3xl font-bold tabular-nums">
                 {today_stats.done}
               </div>
-              <div className="text-sm text-muted-foreground">已完成</div>
+              <div className="text-sm text-muted-foreground">{t("dashboard.completed")}</div>
             </div>
           </div>
           <div className="p-4 border rounded-lg bg-card flex items-center gap-4">
@@ -198,28 +194,25 @@ export default function DashboardPage() {
               <div className="text-3xl font-bold tabular-nums">
                 {today_stats.failed}
               </div>
-              <div className="text-sm text-muted-foreground">失败</div>
+              <div className="text-sm text-muted-foreground">{t("dashboard.failed")}</div>
             </div>
           </div>
         </div>
 
-        {/* Charts */}
         <DashboardCharts />
 
-        {/* Trending */}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold">热门趋势</h2>
+            <h2 className="text-lg font-semibold">{t("dashboard.trending")}</h2>
           </div>
 
           {trending.length === 0 ? (
-            /* Empty state */
             <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-card">
               <TrendingUp className="w-10 h-10 text-muted-foreground/40 mb-3" />
-              <p className="text-sm text-muted-foreground">暂无热榜数据</p>
+              <p className="text-sm text-muted-foreground">{t("dashboard.no_trending")}</p>
               <p className="text-xs text-muted-foreground/60 mt-1">
-                数据将在采集完成后展示
+                {t("dashboard.no_trending_desc")}
               </p>
             </div>
           ) : (
@@ -232,7 +225,6 @@ export default function DashboardPage() {
                   rel="noreferrer"
                   className="flex items-center gap-3 p-3 border rounded-md hover:bg-muted transition-colors group"
                 >
-                  {/* Rank number */}
                   <span
                     className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                       i < 3
@@ -242,8 +234,6 @@ export default function DashboardPage() {
                   >
                     {i + 1}
                   </span>
-
-                  {/* Title + platform badge */}
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate group-hover:text-primary transition-colors">
                       {item.title}
@@ -252,8 +242,6 @@ export default function DashboardPage() {
                       <PlatformBadge code={item.platform_code} />
                     </div>
                   </div>
-
-                  {/* Hot score */}
                   <div className="flex-shrink-0 text-sm font-mono tabular-nums text-primary ml-2">
                     {item.hot_score.toLocaleString()}
                   </div>
