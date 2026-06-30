@@ -255,7 +255,20 @@
     "auto_renew": "Auto-renew",
     "no_results": "No matching results. Try different search terms.",
     "chars": "chars",
-    "words": "words"
+    "words": "words",
+    "connected": "Connected",
+    "tags": "Tags",
+    "comma": ", ",
+    "permanent": "Permanent",
+    "video": "Video",
+    "videos": "Videos",
+    "duration": "Duration: {time}",
+    "queued": "Queued",
+    "create_success": "Created successfully",
+    "created_at": "Created At",
+    "export_failed": "Export failed",
+    "for_example": "e.g.",
+    "delay": "Delay"
   },
   "cancel_select_all": "Deselect All",
   "settings_providers": {

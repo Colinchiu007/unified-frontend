@@ -255,7 +255,20 @@
     "auto_renew": "自动续费",
     "no_results": "没有匹配的结果，试试其他搜索条件",
     "chars": "字",
-    "words": "字"
+    "words": "字",
+    "connected": "连接正常",
+    "tags": "标签",
+    "comma": "，",
+    "permanent": "永久",
+    "video": "视频",
+    "videos": "个视频",
+    "duration": "耗时: {time}",
+    "queued": "排队中",
+    "create_success": "创建成功",
+    "created_at": "创建于",
+    "export_failed": "导出失败",
+    "for_example": "例如",
+    "delay": "延迟"
   },
   "cancel_select_all": "取消全选",
   "settings_providers": {

@@ -71,6 +71,7 @@ const TYPE_BADGE: Record<string, string> = {
 
 export default function AdminProvidersPage() {
   const router = useRouter();
+  const { t } = useTranslations();
 
   // Data state
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
@@ -120,7 +121,7 @@ export default function AdminProvidersPage() {
         router.push("/login");
         return;
       }
-      setError(err.message ?? "加载失败");
+      setError(err.message ?? t("common.load_failed"));
     } finally {
       setLoading(false);
     }
@@ -138,7 +139,7 @@ export default function AdminProvidersPage() {
 
   async function handleAdd() {
     if (!addForm.name.trim() || !addForm.display_name.trim() || !addForm.base_url.trim() || !addForm.api_key.trim()) {
-      setFormError("请填写所有必填项（名称、展示名、Base URL、API Key）");
+      setFormError("{t("admin_providers.form_required")}");
       return;
     }
     setSaving(true);
@@ -150,7 +151,7 @@ export default function AdminProvidersPage() {
       resetAddForm();
       await fetchData();
     } catch (err: any) {
-      setFormError(err.message ?? "创建失败");
+      setFormError(err.message ?? t("admin_providers.create_failed"));
     } finally {
       setSaving(false);
     }
@@ -187,7 +188,7 @@ export default function AdminProvidersPage() {
       setEditingName(null);
       await fetchData();
     } catch (err: any) {
-      setFormError(err.message ?? "更新失败");
+      setFormError(err.message ?? t("admin_providers.update_failed"));
     } finally {
       setSaving(false);
     }
@@ -201,13 +202,13 @@ export default function AdminProvidersPage() {
   // ── Delete ──
 
   async function handleDelete(name: string) {
-    if (!window.confirm(`确定要删除 Provider「${name}」吗？此操作不可恢复。`)) return;
+    if (!window.confirm(t("admin_providers.confirm_delete", { name }))) return;
     setDeletingName(name);
     try {
       await deleteAdminProvider(name);
       setProviders((prev) => prev.filter((p) => p.name !== name));
     } catch (err: any) {
-      setError(err.message ?? "删除失败");
+      setError(err.message ?? t("admin_providers.delete_failed"));
     } finally {
       setDeletingName(null);
     }
@@ -222,7 +223,7 @@ export default function AdminProvidersPage() {
       const result = await testAdminProviderConnection(name);
       setTestResult({ name, result });
     } catch (err: any) {
-      setTestResult({ name, result: { success: false, message: err.message ?? "测试失败" } });
+      setTestResult({ name, result: { success: false, message: err.message ?? t("admin_providers.test_failed") } });
     } finally {
       setTestingName(null);
     }
@@ -258,10 +259,10 @@ export default function AdminProvidersPage() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Shield className="w-6 h-6 text-primary" />
-              Provider 管理
+              {t("admin_providers.title")}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              管理所有 LLM / TTS / Image / Video 提供商的 API 配置
+              {t("admin_providers.desc")}
             </p>
           </div>
           <button
@@ -273,7 +274,7 @@ export default function AdminProvidersPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
           >
             <Plus className="w-4 h-4" />
-            新增 Provider
+            {t("admin_providers.add")}
           </button>
         </div>
 
@@ -314,7 +315,7 @@ export default function AdminProvidersPage() {
           <div className="border rounded-lg bg-card p-6 space-y-4">
             <h3 className="font-semibold text-base flex items-center gap-2">
               <Plus className="w-4 h-4 text-primary" />
-              新增 Provider
+              {t("admin_providers.add")}
             </h3>
             <ProviderFormFields
               data={addForm}
@@ -329,14 +330,14 @@ export default function AdminProvidersPage() {
                 disabled={saving}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
               >
-                {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> 创建中...</> : "创建"}
+                {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("admin_providers.creating")}</> : t("admin_providers.create")}
               </button>
               <button
                 onClick={() => { setShowAddForm(false); resetAddForm(); }}
                 disabled={saving}
                 className="px-4 py-2 border rounded-md text-sm font-medium hover:bg-muted transition-colors"
               >
-                取消
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -346,22 +347,22 @@ export default function AdminProvidersPage() {
         {providers.length === 0 && !showAddForm ? (
           <EmptyState
             icon={Server}
-            title="暂无 Provider 配置"
-            description="添加第一个 LLM 提供商来开始使用"
-            action={{ label: "新增 Provider", onClick: () => { setShowAddForm(true); resetAddForm(); } }}
+            title={t("admin_providers.no_providers")}
+            description={t("admin_providers.add_first")}
+            action={{ label: "{t("admin_providers.add")}", onClick: () => { setShowAddForm(true); resetAddForm(); } }}
           />
         ) : (
           <div className="border rounded-lg bg-card overflow-hidden">
             {/* Table Header */}
             <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 bg-muted/50 text-xs font-medium text-muted-foreground border-b">
-              <div className="col-span-2">名称</div>
-              <div className="col-span-1">类型</div>
-              <div className="col-span-2">展示名</div>
+              <div className="col-span-2">{t("admin_providers.name")}</div>
+              <div className="col-span-1">{t("admin_providers.type")}</div>
+              <div className="col-span-2">{t("admin_providers.display_name")}</div>
               <div className="col-span-2">Base URL</div>
-              <div className="col-span-2">模型</div>
+              <div className="col-span-2">{t("admin_providers.models")}</div>
               <div className="col-span-1">Tier</div>
-              <div className="col-span-1">状态</div>
-              <div className="col-span-1">操作</div>
+              <div className="col-span-1">{t("admin_providers.status")}</div>
+              <div className="col-span-1">{t("common.operate")}</div>
             </div>
 
             {/* Table Rows */}
@@ -372,7 +373,7 @@ export default function AdminProvidersPage() {
                   <div className="p-5 border-b space-y-4 bg-muted/20">
                     <h4 className="font-medium text-sm flex items-center gap-2">
                       <Edit3 className="w-4 h-4 text-primary" />
-                      编辑: {p.name}
+                      {t("common.edit")}: {p.name}
                     </h4>
                     <ProviderFormFields
                       data={editForm}
@@ -387,14 +388,14 @@ export default function AdminProvidersPage() {
                         disabled={saving}
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
                       >
-                        {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> 保存中...</> : "保存"}
+                        {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("common.saving")}</> : t("common.save")}
                       </button>
                       <button
                         onClick={cancelEdit}
                         disabled={saving}
                         className="px-4 py-2 border rounded-md text-sm font-medium hover:bg-muted transition-colors"
                       >
-                        取消
+                        {t("common.cancel")}
                       </button>
                     </div>
                   </div>
@@ -419,14 +420,14 @@ export default function AdminProvidersPage() {
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
                         p.enabled ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
                       }`}>
-                        {p.enabled ? "启用" : "禁用"}
+                        {p.enabled ? "{t("common.enabled")}" : "{t("common.disabled")}"}
                       </span>
                     </div>
                     <div className="col-span-1 flex items-center gap-1">
                       <button
                         onClick={() => startEdit(p)}
                         className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        title="编辑"
+                        title="{t("common.edit")}"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
@@ -434,7 +435,7 @@ export default function AdminProvidersPage() {
                         onClick={() => handleTest(p.name)}
                         disabled={testingName === p.name}
                         className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
-                        title="测试连接"
+                        title="{t("admin_providers.test")}"
                       >
                         {testingName === p.name ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -446,7 +447,7 @@ export default function AdminProvidersPage() {
                         onClick={() => handleDelete(p.name)}
                         disabled={deletingName === p.name}
                         className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-40"
-                        title="删除"
+                        title="{t("common.delete")}"
                       >
                         {deletingName === p.name ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -466,7 +467,7 @@ export default function AdminProvidersPage() {
         <p className="text-xs text-muted-foreground">
           共 {providers.length} 个 Provider
           {providers.filter((p) => p.enabled).length > 0 && (
-            <>，其中 {providers.filter((p) => p.enabled).length} 个已启用</>
+            <>{t("common.comma")} {providers.filter((p) => p.enabled).length} {t("common.enabled")}</>
           )}
         </p>
       </div>
@@ -475,6 +476,7 @@ export default function AdminProvidersPage() {
 }
 
 // ── Provider Form Fields (shared between Add and Edit) ──
+import { useTranslations } from "@/i18n/useTranslations";
 
 function ProviderFormFields({
   data,
@@ -500,18 +502,18 @@ function ProviderFormFields({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {showName && (
         <div className="space-y-1.5">
-          <label className={labelClass}>名称 *</label>
+          <label className={labelClass}>{t("admin_providers.name")} *</label>
           <input value={data.name ?? ""} onChange={(e) => set("name", e.target.value)} className={inputClass} placeholder="openai" />
         </div>
       )}
       <div className="space-y-1.5">
-        <label className={labelClass}>类型 *</label>
+        <label className={labelClass}>{t("admin_providers.type")} *</label>
         <select value={data.provider_type ?? "llm"} onChange={(e) => set("provider_type", e.target.value)} className={inputClass}>
           {TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
       </div>
       <div className="space-y-1.5">
-        <label className={labelClass}>展示名 *</label>
+        <label className={labelClass}>{t("admin_providers.display_name")} *</label>
         <input value={data.display_name ?? ""} onChange={(e) => set("display_name", e.target.value)} className={inputClass} placeholder="OpenAI GPT-4o" />
       </div>
       <div className="space-y-1.5">
@@ -519,21 +521,21 @@ function ProviderFormFields({
         <input value={data.base_url ?? ""} onChange={(e) => set("base_url", e.target.value)} className={inputClass} placeholder="https://api.openai.com/v1" />
       </div>
       <div className="space-y-1.5">
-        <label className={labelClass}>API Key {showName ? "*" : "(留空不修改)"}</label>
+        <label className={labelClass}>API Key {showName ? "*" : "({t("admin_providers.leave_empty")})"}</label>
         <input type="password" value={data.api_key ?? ""} onChange={(e) => set("api_key", e.target.value)} className={inputClass} placeholder="sk-..." />
       </div>
       <div className="space-y-1.5">
-        <label className={labelClass}>模型列表（逗号分隔）</label>
+        <label className={labelClass}>{t("admin_providers.models_placeholder")}</label>
         <input value={models} onChange={(e) => onModelsChange(e.target.value)} className={inputClass} placeholder="gpt-4o, gpt-4o-mini" />
       </div>
       <div className="space-y-1.5">
-        <label className={labelClass}>最低可用 Tier</label>
+        <label className={labelClass}>{t("admin_providers.min_tier")} Tier</label>
         <input type="number" min={1} max={5} value={data.min_tier ?? 1} onChange={(e) => set("min_tier", parseInt(e.target.value) || 1)} className={inputClass} />
       </div>
       <div className="space-y-1.5 flex items-end pb-2">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={data.enabled ?? true} onChange={(e) => set("enabled", e.target.checked)} className="rounded border-gray-300 text-primary focus:ring-primary" />
-          <span className="text-sm">启用</span>
+          <span className="text-sm">{t("common.enabled")}</span>
         </label>
       </div>
     </div>
