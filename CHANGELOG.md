@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-06-30
+
+### Added
+
+- **CI/CD**: GitHub Actions workflow for unified-frontend
+  - Test job: vitest run with 80 tests across 3 test files
+  - Lint job: next lint on changed files
+  - Build job: npm run build verification
+  - Fixed exit-code swallowing in CI pipeline commands
+- **Internationalization**: next-intl plugin with full i18n support
+  - next-intl plugin configuration with zh-CN and en-US locales
+  - middleware for locale detection and routing
+  - 7+ pages integrated with translation keys
+  - Locale switcher in settings
+- **Performance optimization**: next/font and cache headers
+  - Inter font via next/font/google with `--font-inter` CSS variable
+  - Cache-Control headers for 4 static asset patterns (/_next/static/, manifest.json, icons, sw.js)
+  - Tailwind fontFamily configuration for css variable integration
+- **Test infrastructure**: vitest jsdom test environment
+  - jsdom environment with React JSX transform (esbuild jsx: automatic)
+  - jest-dom matchers via @testing-library/jest-dom/vitest
+  - jsdom polyfills: URL.createObjectURL, URL.revokeObjectURL, window.matchMedia
+  - 3 test files (ThemeProvider, FileUploadZone, api.ts) with 80 tests ALL GREEN
+
 ## [0.4.2] - 2026-06-30
 
 ### Added

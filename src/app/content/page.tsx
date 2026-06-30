@@ -56,10 +56,10 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: "待处理",
-  processing: "处理中",
-  completed: "已完成",
-  failed: "失败",
+  pending: t("content.status_draft"),
+  processing: t("content.status_processing"),
+  completed: t("content.status_completed"),
+  failed: t("content.status_failed"),
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -100,8 +100,10 @@ function formatDate(dateStr?: string): string {
 }
 
 // ── Page ──
+import { useTranslations } from "@/i18n/useTranslations";
 
 export default function ContentPage() {
+  const { t } = useTranslations();
   const router = useRouter();
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,7 +132,7 @@ export default function ContentPage() {
         router.push("/login");
         return;
       }
-      setError(err.message ?? "加载失败，请稍后重试");
+      setError(err.message ?? t("common.load_failed_retry"));
     } finally {
       setLoading(false);
     }
@@ -172,7 +174,7 @@ export default function ContentPage() {
 
   const handleBatchDelete = useCallback(async () => {
     if (selectedIds.size === 0) return;
-    if (!window.confirm(`确定删除选中的 ${selectedIds.size} 条内容？`)) return;
+    if (!window.confirm(t("content.confirm_delete", { count: selectedIds.size }))) return;
     setBatchDeleting(true);
     try {
       const token = localStorage.getItem("token");
@@ -186,7 +188,7 @@ export default function ContentPage() {
       setSelectedIds(new Set());
       await fetchContent();
     } catch (err: any) {
-      setError(err.message ?? "批量删除失败");
+      setError(err.message ?? t("content.batch_delete_failed"));
     } finally {
       setBatchDeleting(false);
     }
@@ -209,14 +211,14 @@ export default function ContentPage() {
       <AppLayout>
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[40vh] text-center">
           <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-          <p className="text-destructive font-medium mb-1">加载失败</p>
+          <p className="text-destructive font-medium mb-1">{t("common.load_failed")}</p>
           <p className="text-sm text-muted-foreground mb-6 max-w-xs">{error}</p>
           <button
             onClick={fetchContent}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
-            重试
+            {t("common.retry")}
           </button>
         </div>
       </AppLayout>
@@ -230,12 +232,12 @@ export default function ContentPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">内容库</h1>
+            <h1 className="text-2xl font-bold">{t("content.title")}</h1>
             {!loading && (
               <span className="text-sm text-muted-foreground">
                 {selectedIds.size > 0
-                  ? `已选 ${selectedIds.size} / ${filtered.length} 条`
-                  : `共 ${filtered.length} 条`}
+                  ? t("content.selected_of", { sel: selectedIds.size, total: filtered.length })
+                  : t("content.total", { count: filtered.length })}
               </span>
             )}
           </div>
@@ -247,18 +249,18 @@ export default function ContentPage() {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-md text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                {batchDeleting ? "删除中..." : `删除选中 (${selectedIds.size})`}
+                {batchDeleting ? t("content.deleting") : t("content.delete_selected", { count: selectedIds.size })}
               </button>
             )}
             <div className="relative group">
               <button className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-medium hover:bg-muted transition-colors">
                 <Download className="w-3.5 h-3.5" />
-                导出
+                {t("common.export")}
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </button>
               <div className="absolute right-0 top-full mt-1 w-28 bg-card border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                <button onClick={() => handleExport("csv")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-t-lg">导出 CSV</button>
-                <button onClick={() => handleExport("json")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-b-lg">导出 JSON</button>
+                <button onClick={() => handleExport("csv")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-t-lg">{t("common.export")} CSV</button>
+                <button onClick={() => handleExport("json")} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors rounded-b-lg">{t("common.export")} JSON</button>
               </div>
             </div>
           </div>
@@ -269,7 +271,7 @@ export default function ContentPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="搜索标题或状态..."
+            placeholder={t("content.search_placeholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
@@ -281,12 +283,12 @@ export default function ContentPage() {
           <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-card">
             <FolderOpen className="w-10 h-10 text-muted-foreground/40 mb-3" />
             <p className="text-sm text-muted-foreground">
-              {search ? "未找到匹配的内容" : "内容库为空"}
+              {search ? t("content.no_match") : t("content.empty")}
             </p>
             <p className="text-xs text-muted-foreground/60 mt-1">
               {search
-                ? "尝试更换搜索关键词"
-                : "内容将在采集后自动展示"}
+                ? t("common.no_results")
+                : t("content.empty_desc")}
             </p>
           </div>
         )}
@@ -337,7 +339,7 @@ export default function ContentPage() {
                       {article.word_count_original != null && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <FileDigit className="w-3 h-3" />
-                          {article.word_count_original.toLocaleString()} 字
+                          {article.word_count_original.toLocaleString()} {t("common.chars")}
                         </span>
                       )}
                       {article.created_at && (
@@ -372,7 +374,7 @@ export default function ContentPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground w-20 flex-shrink-0">
-                        原文链接
+                        {t("content.source_link")}
                       </span>
                       <a
                         href={article.source_url}
@@ -386,7 +388,7 @@ export default function ContentPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground w-20 flex-shrink-0">
-                        原始字数
+                        {t("content.original_words")}
                       </span>
                       <span>
                         {article.word_count_original?.toLocaleString() ?? "--"}{" "}
@@ -396,7 +398,7 @@ export default function ContentPage() {
                     {article.created_at && (
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground w-20 flex-shrink-0">
-                          创建时间
+                          
                         </span>
                         <span>{formatDate(article.created_at)}</span>
                       </div>

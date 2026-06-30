@@ -47,9 +47,9 @@ const FileUploadZone = dynamic(() => import("@/components/FileUploadZone"));
 // ── Constants ──
 
 const STEPS = [
-  { label: "选择内容", icon: FileText },
-  { label: "视频配置", icon: Settings2 },
-  { label: "确认生成", icon: Sparkles },
+  { label: t("generate.step_select"), icon: FileText },
+  { label: t("generate.step_configure"), icon: Settings2 },
+  { label: t("generate.step_confirm"), icon: Sparkles },
 ];
 
 // ── Skeleton ──
@@ -79,9 +79,9 @@ function EmptySources() {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-card">
       <FileText className="w-10 h-10 text-muted-foreground/40 mb-3" />
-      <p className="text-sm text-muted-foreground">暂无可用内容</p>
+      <p className="text-sm text-muted-foreground">{t("generate.no_content")}</p>
       <p className="text-xs text-muted-foreground/60 mt-1">
-        请先在内容库中采集或导入文章
+        {t("generate.no_content_desc")}
       </p>
     </div>
   );
@@ -99,7 +99,7 @@ function ErrorBlock({
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <AlertCircle className="w-10 h-10 text-destructive mb-3" />
-      <p className="text-sm text-destructive font-medium mb-1">加载失败</p>
+      <p className="text-sm text-destructive font-medium mb-1">{t("common.load_failed")}</p>
       <p className="text-xs text-muted-foreground mb-4">{message}</p>
       {onRetry && (
         <button
@@ -107,7 +107,7 @@ function ErrorBlock({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-xs font-medium hover:opacity-90 transition-opacity"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          重试
+          {t("common.retry")}
         </button>
       )}
     </div>
@@ -168,7 +168,7 @@ function ContentSelector({
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium flex items-center gap-2">
           <FileText className="w-4 h-4 text-muted-foreground" />
-          选择要生成视频的文章
+          {t("generate.select_article_hint")}
           <FieldIndicator valid={selected.length > 0} show={touched} />
         </label>
         <button
@@ -176,7 +176,7 @@ function ContentSelector({
           onClick={toggleAll}
           className="text-xs text-primary hover:underline"
         >
-          {allSelected ? "取消全选" : `全选（${sources.length}篇）`}
+          {allSelected ? t("cancel_select_all") : t("generate.select_all", { count: sources.length })}
         </button>
       </div>
       <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
@@ -215,7 +215,7 @@ function ContentSelector({
                     <div className="flex items-center gap-2 mt-1.5">
                       <StatusBadge status={s.status} />
                       <span className="text-xs text-muted-foreground">
-                        {s.word_count_original?.toLocaleString() ?? "?"} 字
+                        {s.word_count_original?.toLocaleString() ?? "?"} {t("common.chars")}
                       </span>
                     </div>
                   </div>
@@ -266,7 +266,7 @@ function VideoConfig({
     <div className="space-y-5">
       <label className="text-sm font-medium flex items-center gap-2">
         <Settings2 className="w-4 h-4 text-muted-foreground" />
-        视频参数配置
+        {t("generate.param_configure")}
         <FieldIndicator valid={!!voice && !!ratio && !!platform} show={touched} />
       </label>
 
@@ -274,7 +274,7 @@ function VideoConfig({
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
           <Music className="w-3.5 h-3.5" />
-          配音音色
+          {t("generate.voice_tone")}
         </label>
         <select
           value={voice}
@@ -293,7 +293,7 @@ function VideoConfig({
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
           <Settings2 className="w-3.5 h-3.5" />
-          视频比例
+          {t("generate.video_ratio")}
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {options.video_ratios.map((r) => (
@@ -317,7 +317,7 @@ function VideoConfig({
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5" />
-          图片风格
+          {t("generate.image_style")}
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {options.prompt_platforms.map((p) => (
@@ -368,26 +368,26 @@ function ConfirmStep({
     <div className="space-y-4">
       <label className="text-sm font-medium flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-muted-foreground" />
-        确认生成参数
+        {t("generate.confirm_params")}
       </label>
 
       <div className="border rounded-lg divide-y">
         <div className="p-4 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">文章数量</span>
+          <span className="text-sm text-muted-foreground">{t("generate.article_count")}</span>
           <span className="text-sm font-medium">
             {articles.length} 篇
           </span>
         </div>
         <div className="p-4 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">配音</span>
+          <span className="text-sm text-muted-foreground">{t("generate.voice")}</span>
           <span className="text-sm">{voiceLabel}</span>
         </div>
         <div className="p-4 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">比例</span>
+          <span className="text-sm text-muted-foreground">{t("generate.video_ratio")}</span>
           <span className="text-sm">{ratioLabel}</span>
         </div>
         <div className="p-4 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">风格</span>
+          <span className="text-sm text-muted-foreground">{t("generate.image_style")}</span>
           <span className="text-sm">{platformLabel}</span>
         </div>
       </div>
@@ -396,7 +396,7 @@ function ConfirmStep({
       <details className="border rounded-lg">
         <summary className="p-3 text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors flex items-center gap-2">
           <ChevronDown className="w-4 h-4" />
-          已选文章
+          {t("generate.selected_articles")}
         </summary>
         <div className="px-3 pb-3 space-y-1.5 max-h-48 overflow-y-auto">
           {articles.map((a) => {
@@ -424,6 +424,7 @@ function ConfirmStep({
 
 export default function GeneratePage() {
   const router = useRouter();
+  const { t } = useTranslations();
   const [options, setOptions] = useState<GenerateOptions | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -463,7 +464,7 @@ export default function GeneratePage() {
         router.push("/login");
         return;
       }
-      setError(err.message ?? "加载失败");
+      setError(err.message ?? "{t("common.load_failed")}");
     } finally {
       setLoading(false);
     }
@@ -491,7 +492,7 @@ export default function GeneratePage() {
       setResults(res.results);
       setStep(3); // Move to result step
     } catch (err: any) {
-      setSubmitError(err.message ?? "提交失败，请稍后重试");
+      setSubmitError(err.message ?? "{t("generate.submit_failed")}");
     } finally {
       setSubmitting(false);
     }
@@ -561,7 +562,7 @@ export default function GeneratePage() {
     return (
       <AppLayout>
         <div className="max-w-3xl mx-auto space-y-6">
-          <h1 className="text-2xl font-bold">生成视频</h1>
+          <h1 className="text-2xl font-bold">{t("generate.title")}</h1>
           <EmptySources />
         </div>
       </AppLayout>
@@ -572,7 +573,7 @@ export default function GeneratePage() {
     <AppLayout>
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Page title */}
-        <h1 className="text-2xl font-bold">生成视频</h1>
+        <h1 className="text-2xl font-bold">{t("generate.title")}</h1>
 
         {/* Step indicators */}
         {!results && (
@@ -629,7 +630,7 @@ export default function GeneratePage() {
                 selected={selectedArticles}
                 onChange={setSelectedArticles}
                 touched={!!touched[0]}
-                error="请至少选择一篇文章"
+                error="{t("generate.please_select")}"
               />
             )}
             {step === 1 && (
@@ -659,6 +660,7 @@ export default function GeneratePage() {
               <UploadZoneWrapper onComplete={(id) => {
                 setSelectedArticles((prev) => [...prev, id]);
                 // Refresh options to include new article
+import { useTranslations } from "@/i18n/useTranslations";
                 fetchOptions();
               }} />
             )}
@@ -677,7 +679,7 @@ export default function GeneratePage() {
                 disabled={step === 0}
                 className="px-4 py-2 border rounded-md text-sm font-medium disabled:opacity-30 hover:bg-muted transition-colors"
               >
-                上一步
+                {t("common.prev")}
               </button>
 
               {step < 2 ? (
@@ -685,7 +687,7 @@ export default function GeneratePage() {
                   onClick={nextStep}
                   className="inline-flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
                 >
-                  下一步
+                  {t("common.next")}
                   <ChevronRight className="w-4 h-4" />
                 </button>
               ) : (
@@ -697,12 +699,12 @@ export default function GeneratePage() {
                   {submitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      提交中...
+                      {t("generate.submitting")}
                     </>
                   ) : (
                     <>
                       <Play className="w-4 h-4" />
-                      开始生成 ({selectedArticles.length} 个视频)
+                      {t("generate.start")} ({selectedArticles.length}  {t("common.videos")})
                     </>
                   )}
                 </button>
@@ -717,7 +719,7 @@ export default function GeneratePage() {
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium flex items-center gap-2">
                 <Play className="w-4 h-4 text-muted-foreground" />
-                批量生成进度 ({results.length} 个视频)
+                {t("generate.batch_progress")} ({results.length}  {t("common.videos")})
               </label>
             </div>
             <div className="space-y-3">
@@ -729,9 +731,9 @@ export default function GeneratePage() {
                 >
                   <summary className="p-3 text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors flex items-center gap-2">
                     <ChevronDown className="w-4 h-4" />
-                    视频 #{i + 1}
+                    {t("common.video")} #{i + 1}
                     <span className="text-xs text-muted-foreground ml-auto">
-                      {r.status === "pending" ? "排队中" : r.status}
+                      {r.status === "pending" ? "{t("common.queued")}" : r.status}
                     </span>
                   </summary>
                   <div className="px-3 pb-3">

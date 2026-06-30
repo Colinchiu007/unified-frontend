@@ -4,12 +4,17 @@ import path from "path";
 
 export default defineConfig({
   test: {
-    environment: "node",
+    environment: "jsdom",
     globals: true,
+    setupFiles: ["./src/test/setup.ts"],
+    css: true,
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  esbuild: {
+    jsx: "automatic",
   },
 });

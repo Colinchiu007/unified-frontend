@@ -56,6 +56,7 @@ const PLAN_BADGE: Record<string, string> = {
 
 export default function AdminUsersPage() {
   const router = useRouter();
+  const { t } = useTranslations();
 
   // Data state
   const [pageData, setPageData] = useState<PaginatedUsers | null>(null);
@@ -96,7 +97,7 @@ export default function AdminUsersPage() {
         router.push("/login");
         return;
       }
-      setError(err.message ?? "加载失败");
+      setError(err.message ?? t("common.load_failed"));
     } finally {
       setLoading(false);
     }
@@ -115,7 +116,7 @@ export default function AdminUsersPage() {
       const data = await getAdminUser(uuid);
       setDetailData(data);
     } catch (err: any) {
-      setDetailError(err.message ?? "加载用户详情失败");
+      setDetailError(err.message ?? t("admin_users.load_failed"));
     } finally {
       setDetailLoading(false);
     }
@@ -140,7 +141,7 @@ export default function AdminUsersPage() {
         await openDetail(uuid);
       }
     } catch (err: any) {
-      setToggleError(err.message ?? "操作失败");
+      setToggleError(err.message ?? t("admin_users.operate_failed"));
     } finally {
       setTogglingUuid(null);
     }
@@ -164,6 +165,7 @@ export default function AdminUsersPage() {
   }
 
   // ── Render ──
+import { useTranslations } from "@/i18n/useTranslations";
 
   if (loading && !pageData) {
     return (
@@ -197,10 +199,10 @@ export default function AdminUsersPage() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Users className="w-6 h-6 text-primary" />
-              用户管理
+              {t("admin_users.title")}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              查看和管理所有注册用户
+              {t("admin_users.desc")}
             </p>
           </div>
         </div>
@@ -223,7 +225,7 @@ export default function AdminUsersPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="搜索用户名或邮箱..."
+                placeholder="{t("common.search")}{t("admin_users.col_username")}或{t("admin_users.col_email")}..."
                 className="w-full pl-9 pr-8 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
               />
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -237,7 +239,7 @@ export default function AdminUsersPage() {
               onClick={handleSearch}
               className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
             >
-              搜索
+              {t("common.search")}
             </button>
           </div>
 
@@ -247,7 +249,7 @@ export default function AdminUsersPage() {
             onChange={(e) => { setSubscriptionFilter(e.target.value); setPage(1); }}
             className="px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           >
-            <option value="">全部套餐</option>
+            <option value="">{t("admin_users.filter_plan")}</option>
             <option value="free">Free</option>
             <option value="basic">Basic</option>
             <option value="pro">Pro</option>
@@ -259,18 +261,18 @@ export default function AdminUsersPage() {
         {users.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="暂无用户"
-            description={searchQuery || subscriptionFilter ? "没有匹配的用户，试试其他搜索条件" : "还没有注册用户"}
+            title={t("admin_users.empty_title")}
+            description={searchQuery || subscriptionFilter ? t("admin_users.empty_desc_search") : t("admin_users.empty_desc_none")}
           />
         ) : (
           <div className="border rounded-lg bg-card overflow-hidden">
             {/* Table Header */}
             <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 bg-muted/50 text-xs font-medium text-muted-foreground border-b">
-              <div className="col-span-3">用户名</div>
-              <div className="col-span-3">邮箱</div>
-              <div className="col-span-2">套餐</div>
-              <div className="col-span-2">状态</div>
-              <div className="col-span-2">注册时间</div>
+              <div className="col-span-3">{t("admin_users.col_username")}</div>
+              <div className="col-span-3">{t("admin_users.col_email")}</div>
+              <div className="col-span-2">{t("admin_users.col_plan")}</div>
+              <div className="col-span-2">{t("admin_users.col_status")}</div>
+              <div className="col-span-2">{t("admin_users.col_registered")}</div>
             </div>
 
             {/* Table Rows */}
@@ -303,7 +305,7 @@ export default function AdminUsersPage() {
                       />
                     </button>
                     <span className={`text-xs font-medium ${u.is_active ? "text-green-600" : "text-muted-foreground"}`}>
-                      {togglingUuid === u.uuid ? "..." : (u.is_active ? "正常" : "已禁用")}
+                      {togglingUuid === u.uuid ? "..." : (u.is_active ? "{t("common.normal")}" : "{t("common.banned")}")}
                     </span>
                   </label>
                 </div>
@@ -319,7 +321,7 @@ export default function AdminUsersPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              共 {total} 个用户，第 {page}/{totalPages} 页
+              {t("admin_users.pagination", { page, count: total })}
             </span>
             <div className="flex gap-2">
               <button
@@ -327,14 +329,14 @@ export default function AdminUsersPage() {
                 disabled={page <= 1}
                 className="px-3 py-1.5 border rounded-md text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
               >
-                上一页
+                {t("common.prev")}
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
                 className="px-3 py-1.5 border rounded-md text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
               >
-                下一页
+                {t("common.next")}
               </button>
             </div>
           </div>
@@ -343,7 +345,7 @@ export default function AdminUsersPage() {
         {/* Summary */}
         {users.length > 0 && (
           <p className="text-xs text-muted-foreground">
-            共 {total} 个用户
+            {t("admin_users.pagination", { page: 1, count: total })}
           </p>
         )}
 
@@ -353,7 +355,7 @@ export default function AdminUsersPage() {
             <div className="bg-background rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               {/* Modal Header */}
               <div className="flex items-center justify-between p-5 border-b">
-                <h2 className="text-lg font-semibold">用户详情</h2>
+                <h2 className="text-lg font-semibold">{t("admin_users.user_detail")}</h2>
                 <button onClick={closeDetail} className="p-1 rounded-md hover:bg-muted transition-colors">
                   <X className="w-5 h-5" />
                 </button>
@@ -378,46 +380,46 @@ export default function AdminUsersPage() {
                   <>
                     {/* User Info */}
                     <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">基本信息</h3>
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("admin_users.basic_info")}</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         <div><span className="text-muted-foreground">UUID:</span> <code className="text-xs bg-muted px-1 py-0.5 rounded">{detailData.uuid}</code></div>
-                        <div><span className="text-muted-foreground">用户名:</span> {detailData.username}</div>
-                        <div><span className="text-muted-foreground">邮箱:</span> {detailData.email}</div>
+                        <div><span className="text-muted-foreground">{t("admin_users.col_username")}:</span> {detailData.username}</div>
+                        <div><span className="text-muted-foreground">{t("admin_users.col_email")}:</span> {detailData.email}</div>
                         <div>
-                          <span className="text-muted-foreground">状态:</span>{" "}
+                          <span className="text-muted-foreground">{t("admin_users.col_status")}:</span>{" "}
                           <span className={detailData.is_active ? "text-green-600" : "text-red-600"}>
-                            {detailData.is_active ? "正常" : "已禁用"}
+                            {detailData.is_active ? "{t("common.normal")}" : "{t("common.banned")}"}
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">套餐:</span>{" "}
+                          <span className="text-muted-foreground">{t("admin_users.col_plan")}:</span>{" "}
                           <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${PLAN_BADGE[detailData.subscription_type] ?? ""}`}>
                             {detailData.subscription_type.toUpperCase()}
                           </span>
                         </div>
-                        <div><span className="text-muted-foreground">注册时间:</span> {detailData.created_at ? new Date(detailData.created_at).toLocaleString("zh-CN") : "-"}</div>
+                        <div><span className="text-muted-foreground">{t("admin_users.col_registered")}:</span> {detailData.created_at ? new Date(detailData.created_at).toLocaleString("zh-CN") : "-"}</div>
                       </div>
                     </div>
 
                     {/* Subscription Info */}
                     <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">订阅信息</h3>
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("settings.subscription")}</h3>
                       {detailData.subscription ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                          <div><span className="text-muted-foreground">套餐:</span> {detailData.subscription.plan_type}</div>
-                          <div><span className="text-muted-foreground">状态:</span> {detailData.subscription.status}</div>
-                          <div><span className="text-muted-foreground">开始:</span> {detailData.subscription.start_date ? new Date(detailData.subscription.start_date).toLocaleDateString("zh-CN") : "-"}</div>
-                          <div><span className="text-muted-foreground">结束:</span> {detailData.subscription.end_date ? new Date(detailData.subscription.end_date).toLocaleDateString("zh-CN") : "永久"}</div>
-                          <div><span className="text-muted-foreground">自动续费:</span> {detailData.subscription.auto_renew ? "是" : "否"}</div>
+                          <div><span className="text-muted-foreground">{t("admin_users.col_plan")}:</span> {detailData.subscription.plan_type}</div>
+                          <div><span className="text-muted-foreground">{t("admin_users.col_status")}:</span> {detailData.subscription.status}</div>
+                          <div><span className="text-muted-foreground">{t("common.start")}:</span> {detailData.subscription.start_date ? new Date(detailData.subscription.start_date).toLocaleDateString("zh-CN") : "-"}</div>
+                          <div><span className="text-muted-foreground">{t("common.end")}:</span> {detailData.subscription.end_date ? new Date(detailData.subscription.end_date).toLocaleDateString("zh-CN") : "{t("common.permanent")}"}</div>
+                          <div><span className="text-muted-foreground">{t("common.auto_renew")}:</span> {detailData.subscription.auto_renew ? "是" : "否"}</div>
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">暂无订阅信息</p>
+                        <p className="text-sm text-muted-foreground">{t("settings.no_subscription")}</p>
                       )}
                     </div>
 
                     {/* Usage History */}
                     <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">用量历史 (近30天)</h3>
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("settings.usage_history")} (近30天)</h3>
                       {detailData.usage.length > 0 ? (
                         <div className="space-y-2">
                           {detailData.usage.map((u, i) => (
@@ -433,7 +435,7 @@ export default function AdminUsersPage() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">暂无用量记录</p>
+                        <p className="text-sm text-muted-foreground">{t("settings.no_usage")}</p>
                       )}
                     </div>
                   </>
