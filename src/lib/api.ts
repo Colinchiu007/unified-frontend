@@ -15,26 +15,26 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.text();
-    // Try to extract a human-readable message from FastAPI 422
-    let message = `${res.status}: ${res.statusText}`;
+    // Try to extract a human-readable message from common API error formats
+    let detail = "";
     try {
       const json = JSON.parse(body);
       if (json.detail) {
         if (Array.isArray(json.detail)) {
           // FastAPI validation error: pick the first msg
           const first = json.detail[0];
-          message = first.msg ?? first.message ?? message;
+          detail = first.msg ?? first.message ?? "";
         } else {
-          message = json.detail;
+          detail = json.detail;
         }
       } else if (json.message) {
-        message = json.message;
+        detail = json.message;
       }
     } catch {
       // Not JSON — use the raw body if short enough
-      if (body.length < 200) message = body;
+      if (body.length < 200) detail = body;
     }
-    throw new Error(message);
+    throw new Error(detail ? `${res.status}: ${detail}` : `${res.status}: ${res.statusText}`);
   }
   return res.json();
 }
