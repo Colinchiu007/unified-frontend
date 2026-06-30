@@ -31,7 +31,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t)
     localStorage.setItem('theme', t)
-    document.documentElement.setAttribute('data-theme', t)
   }, [])
 
   const toggleTheme = useCallback(() => {
