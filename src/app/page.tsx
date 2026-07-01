@@ -153,7 +153,26 @@ export default function DashboardPage() {
     );
   }
 
-  const { trending, today_stats, user } = data!;
+  if (!data) {
+    return (
+      <AppLayout>
+        <div className="max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[40vh] text-center">
+          <AlertCircle className="w-12 h-12 text-destructive mb-4" />
+          <p className="text-destructive font-medium mb-1">{t("dashboard.loading_failed")}</p>
+          <p className="text-sm text-muted-foreground mb-6 max-w-xs">服务返回空数据，请稍后重试</p>
+          <button
+            onClick={fetchDashboard}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t("dashboard.retry")}
+          </button>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const { trending, today_stats, user } = data;
 
   return (
     <AppLayout>
